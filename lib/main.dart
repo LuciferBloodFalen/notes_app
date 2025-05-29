@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'note_edit_screen.dart';
 import 'search_screen.dart';
 import 'settings_screen.dart';
+import 'recycle_bin_screen.dart';
 
 void main() {
   runApp(const MainApp());
@@ -77,6 +78,7 @@ class NotesHomePage extends StatefulWidget {
 class _NotesHomePageState extends State<NotesHomePage> {
   final List<Note> _notes = [];
   final Set<int> _selectedIndexes = {};
+  final List<Note> _recycleBin = [];
 
   bool get _isSelectionMode => _selectedIndexes.isNotEmpty;
 
@@ -124,6 +126,7 @@ class _NotesHomePageState extends State<NotesHomePage> {
   void _deleteNote(int index) {
     if (index < 0 || index >= _notes.length) return;
     setState(() {
+      _recycleBin.add(_notes[index]);
       _notes.removeAt(index);
     });
   }
@@ -149,6 +152,7 @@ class _NotesHomePageState extends State<NotesHomePage> {
       final toRemove =
           _selectedIndexes.toList()..sort((a, b) => b.compareTo(a));
       for (final idx in toRemove) {
+        _recycleBin.add(_notes[idx]);
         _notes.removeAt(idx);
       }
       _selectedIndexes.clear();
@@ -175,6 +179,22 @@ class _NotesHomePageState extends State<NotesHomePage> {
     );
     if (result != null) {
       widget.onThemeChanged?.call(result);
+    }
+  }
+
+  void _openRecycleBinScreen() async {
+    final restoredNotes = await Navigator.of(context).push<List<Note>>(
+      MaterialPageRoute(
+        builder:
+            (context) =>
+                RecycleBinScreen(deletedNotes: List<Note>.from(_recycleBin)),
+      ),
+    );
+    if (restoredNotes != null) {
+      setState(() {
+        _notes.addAll(restoredNotes);
+        _recycleBin.removeWhere((note) => restoredNotes.contains(note));
+      });
     }
   }
 
@@ -211,10 +231,18 @@ class _NotesHomePageState extends State<NotesHomePage> {
               ),
             ),
             ListTile(
+              leading: const Icon(Icons.delete_outline),
+              title: const Text('Recycle Bin'),
+              onTap: () {
+                Navigator.pop(context);
+                _openRecycleBinScreen();
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.settings),
               title: const Text('Settings'),
               onTap: () {
-                Navigator.pop(context); // Close the drawer
+                Navigator.pop(context);
                 _openSettingsScreen();
               },
             ),
