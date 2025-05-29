@@ -40,7 +40,16 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget build(BuildContext context) {
     final textColor = Theme.of(context).textTheme.bodyMedium?.color;
     return Scaffold(
-      appBar: AppBar(title: const Text('Search Notes')),
+      appBar: AppBar(
+        title: const DefaultTextStyle(
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
+          ),
+          child: Text('Search Notes'),
+        ),
+      ),
       body: Column(
         children: [
           Padding(
@@ -54,7 +63,12 @@ class _SearchScreenState extends State<SearchScreen> {
           Expanded(
             child:
                 _results.isEmpty
-                    ? const Center(child: Text('No matching notes found.'))
+                    ? const Center(
+                      child: Text(
+                        'No matching notes found.',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    )
                     : ListView.builder(
                       itemCount: _results.length,
                       itemBuilder: (context, index) {
@@ -67,9 +81,13 @@ class _SearchScreenState extends State<SearchScreen> {
                           ),
                           child: ListTile(
                             leading: Icon(
-                              note.isFavourite ? Icons.star : Icons.star_border,
+                              note.isPinned
+                                  ? Icons.push_pin
+                                  : Icons.push_pin_outlined,
                               color:
-                                  note.isFavourite ? Colors.amber : Colors.grey,
+                                  note.isPinned
+                                      ? Colors.deepPurple
+                                      : Colors.grey,
                             ),
                             title: Text(
                               note.title.isEmpty ? '(No Title)' : note.title,

@@ -54,10 +54,17 @@ class _RecycleBinScreenState extends State<RecycleBinScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          _selectedIndexes.isEmpty
-              ? 'Recycle Bin'
-              : '${_selectedIndexes.length} selected',
+        title: DefaultTextStyle(
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
+          ),
+          child: Text(
+            _selectedIndexes.isEmpty
+                ? 'Recycle Bin'
+                : '${_selectedIndexes.length} selected',
+          ),
         ),
         actions:
             _selectedIndexes.isEmpty
@@ -80,7 +87,12 @@ class _RecycleBinScreenState extends State<RecycleBinScreen> {
           Expanded(
             child:
                 _binNotes.isEmpty
-                    ? const Center(child: Text('Recycle bin is empty.'))
+                    ? const Center(
+                      child: Text(
+                        'Recycle bin is empty.',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    )
                     : ListView.builder(
                       itemCount: _binNotes.length,
                       itemBuilder: (context, idx) {
@@ -99,9 +111,13 @@ class _RecycleBinScreenState extends State<RecycleBinScreen> {
                           ),
                           child: ListTile(
                             leading: Icon(
-                              note.isFavourite ? Icons.star : Icons.star_border,
+                              note.isPinned
+                                  ? Icons.push_pin
+                                  : Icons.push_pin_outlined,
                               color:
-                                  note.isFavourite ? Colors.amber : Colors.grey,
+                                  note.isPinned
+                                      ? Colors.deepPurple
+                                      : Colors.grey,
                             ),
                             title: Text(
                               note.title.isEmpty ? '(No Title)' : note.title,

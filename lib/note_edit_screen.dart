@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 class NoteEditScreen extends StatefulWidget {
   final String? initialTitle;
   final String? initialContent;
-  final bool isFavourite;
+  final bool isPinned;
   final Color? initialColor;
   final void Function(
     String title,
     String content,
-    bool isFavourite,
+    bool isPinned,
     Color cardColor,
   )
   onSave;
@@ -17,7 +17,7 @@ class NoteEditScreen extends StatefulWidget {
     super.key,
     this.initialTitle,
     this.initialContent,
-    this.isFavourite = false,
+    this.isPinned = false,
     this.initialColor,
     required this.onSave,
   });
@@ -29,7 +29,7 @@ class NoteEditScreen extends StatefulWidget {
 class _NoteEditScreenState extends State<NoteEditScreen> {
   late final TextEditingController _titleController;
   late final TextEditingController _contentController;
-  late bool _isFavourite;
+  late bool _isPinned;
   late Color _cardColor;
 
   final List<Color> _availableColors = [
@@ -50,7 +50,7 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
     _contentController = TextEditingController(
       text: widget.initialContent ?? '',
     );
-    _isFavourite = widget.isFavourite;
+    _isPinned = widget.isPinned;
     _cardColor = widget.initialColor ?? Colors.white;
   }
 
@@ -68,7 +68,7 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
       Navigator.of(context).pop();
       return;
     }
-    widget.onSave(title, content, _isFavourite, _cardColor);
+    widget.onSave(title, content, _isPinned, _cardColor);
     Navigator.of(context).pop();
   }
 
@@ -81,17 +81,24 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(widget.initialTitle == null ? 'Add Note' : 'Edit Note'),
+          title: DefaultTextStyle(
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+              color: Colors.white,
+            ),
+            child: Text(widget.initialTitle == null ? 'Add Note' : 'Edit Note'),
+          ),
           actions: [
             IconButton(
               icon: Icon(
-                _isFavourite ? Icons.star : Icons.star_border,
-                color: _isFavourite ? Colors.amber : Colors.white,
+                _isPinned ? Icons.push_pin : Icons.push_pin_outlined,
+                color: _isPinned ? Colors.deepPurple : Colors.white,
               ),
-              tooltip: _isFavourite ? 'Unmark Favourite' : 'Mark as Favourite',
+              tooltip: _isPinned ? 'Unpin Note' : 'Pin Note',
               onPressed: () {
                 setState(() {
-                  _isFavourite = !_isFavourite;
+                  _isPinned = !_isPinned;
                 });
               },
             ),

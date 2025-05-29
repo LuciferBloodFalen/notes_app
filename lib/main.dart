@@ -58,16 +58,16 @@ class _MainAppState extends State<MainApp> {
   }
 }
 
-// Note model with title, content, favourite flag, and cardColor
+// Note model with title, content, pin flag, and cardColor
 class Note {
   String title;
   String content;
-  bool isFavourite;
+  bool isPinned;
   Color cardColor;
   Note({
     required this.title,
     required this.content,
-    this.isFavourite = false,
+    this.isPinned = false,
     this.cardColor = Colors.white,
   });
 }
@@ -98,16 +98,16 @@ class _NotesHomePageState extends State<NotesHomePage> {
             (context) => NoteEditScreen(
               initialTitle: note?.title,
               initialContent: note?.content,
-              isFavourite: note?.isFavourite ?? false,
+              isPinned: note?.isPinned ?? false,
               initialColor: note?.cardColor ?? Colors.white,
-              onSave: (title, content, isFavourite, cardColor) {
+              onSave: (title, content, isPinned, cardColor) {
                 if (title.trim().isEmpty && content.trim().isEmpty) return;
                 setState(() {
                   if (isEditing) {
                     _notes[index!] = Note(
                       title: title,
                       content: content,
-                      isFavourite: isFavourite,
+                      isPinned: isPinned,
                       cardColor: cardColor,
                     );
                   } else {
@@ -115,7 +115,7 @@ class _NotesHomePageState extends State<NotesHomePage> {
                       Note(
                         title: title,
                         content: content,
-                        isFavourite: isFavourite,
+                        isPinned: isPinned,
                         cardColor: cardColor,
                       ),
                     );
@@ -127,9 +127,9 @@ class _NotesHomePageState extends State<NotesHomePage> {
     );
   }
 
-  void _toggleFavourite(int index) {
+  void _togglePin(int index) {
     setState(() {
-      _notes[index].isFavourite = !_notes[index].isFavourite;
+      _notes[index].isPinned = !_notes[index].isPinned;
     });
   }
 
@@ -169,10 +169,10 @@ class _NotesHomePageState extends State<NotesHomePage> {
     });
   }
 
-  void _toggleFavouriteSelected() {
+  void _togglePinSelected() {
     setState(() {
       for (final idx in _selectedIndexes) {
-        _notes[idx].isFavourite = !_notes[idx].isFavourite;
+        _notes[idx].isPinned = !_notes[idx].isPinned;
       }
       _selectedIndexes.clear();
     });
@@ -210,22 +210,22 @@ class _NotesHomePageState extends State<NotesHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // Favourites first, then others
+    // Pinned first, then others
     final sortedNotes = [
-      ..._notes.where((n) => n.isFavourite),
-      ..._notes.where((n) => !n.isFavourite),
+      ..._notes.where((n) => n.isPinned),
+      ..._notes.where((n) => !n.isPinned),
     ];
     // Map sortedNotes to their original indexes for selection
     final sortedIndexes = [
       ..._notes
           .asMap()
           .entries
-          .where((e) => e.value.isFavourite)
+          .where((e) => e.value.isPinned)
           .map((e) => e.key),
       ..._notes
           .asMap()
           .entries
-          .where((e) => !e.value.isFavourite)
+          .where((e) => !e.value.isPinned)
           .map((e) => e.key),
     ];
 
@@ -235,14 +235,21 @@ class _NotesHomePageState extends State<NotesHomePage> {
           children: [
             const DrawerHeader(
               decoration: BoxDecoration(color: Colors.deepPurple),
-              child: Text(
-                'Menu',
-                style: TextStyle(color: Colors.white, fontSize: 24),
+              child: DefaultTextStyle(
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 24,
+                  color: Colors.white,
+                ),
+                child: Text('Menu'),
               ),
             ),
             ListTile(
               leading: const Icon(Icons.delete_outline),
-              title: const Text('Recycle Bin'),
+              title: const Text(
+                'Recycle Bin',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               onTap: () {
                 Navigator.pop(context);
                 _openRecycleBinScreen();
@@ -250,7 +257,10 @@ class _NotesHomePageState extends State<NotesHomePage> {
             ),
             ListTile(
               leading: const Icon(Icons.settings),
-              title: const Text('Settings'),
+              title: const Text(
+                'Settings',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               onTap: () {
                 Navigator.pop(context);
                 _openSettingsScreen();
@@ -260,17 +270,38 @@ class _NotesHomePageState extends State<NotesHomePage> {
         ),
       ),
       appBar: AppBar(
-        title: Text(
-          _isSelectionMode ? '${_selectedIndexes.length} selected' : 'Notes',
+        title: DefaultTextStyle(
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
+          ),
+          child: Text(
+            _isSelectionMode ? '${_selectedIndexes.length} selected' : 'Notes',
+          ),
         ),
         centerTitle: true,
         actions:
             _isSelectionMode
                 ? [
                   IconButton(
-                    icon: const Icon(Icons.star),
-                    tooltip: 'Toggle Favourite',
-                    onPressed: _toggleFavouriteSelected,
+                    icon: Icon(
+                      // If all selected notes are pinned, show unpin icon, else show pin icon
+                      _selectedIndexes.isNotEmpty &&
+                              _selectedIndexes.every(
+                                (idx) => _notes[idx].isPinned,
+                              )
+                          ? Icons.push_pin_outlined
+                          : Icons.push_pin,
+                    ),
+                    tooltip:
+                        _selectedIndexes.isNotEmpty &&
+                                _selectedIndexes.every(
+                                  (idx) => _notes[idx].isPinned,
+                                )
+                            ? 'Unpin Selected'
+                            : 'Pin Selected',
+                    onPressed: _togglePinSelected,
                   ),
                   IconButton(
                     icon: const Icon(Icons.delete),
@@ -318,24 +349,6 @@ class _NotesHomePageState extends State<NotesHomePage> {
                             vertical: 4,
                           ),
                           child: ListTile(
-                            leading: IconButton(
-                              icon: Icon(
-                                note.isFavourite
-                                    ? Icons.star
-                                    : Icons.star_border,
-                                color:
-                                    note.isFavourite
-                                        ? Colors.amber
-                                        : Colors.grey,
-                              ),
-                              tooltip:
-                                  note.isFavourite
-                                      ? 'Unmark Favourite'
-                                      : 'Mark as Favourite',
-                              onPressed: () {
-                                _toggleFavourite(originalIndex);
-                              },
-                            ),
                             title: Text(
                               note.title.isEmpty ? '(No Title)' : note.title,
                               style: TextStyle(
@@ -348,6 +361,13 @@ class _NotesHomePageState extends State<NotesHomePage> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
+                            trailing:
+                                note.isPinned
+                                    ? Icon(
+                                      Icons.push_pin,
+                                      color: Colors.deepPurple,
+                                    )
+                                    : null,
                             selected: isSelected,
                             onLongPress: () => _toggleSelect(originalIndex),
                             onTap: () {
@@ -357,54 +377,6 @@ class _NotesHomePageState extends State<NotesHomePage> {
                                 _openNoteEditScreen(index: originalIndex);
                               }
                             },
-                            trailing: PopupMenuButton<String>(
-                              icon: const Icon(Icons.more_vert),
-                              onSelected: (value) {
-                                if (value == 'edit') {
-                                  _openNoteEditScreen(index: originalIndex);
-                                } else if (value == 'favourite') {
-                                  _toggleFavourite(originalIndex);
-                                } else if (value == 'delete') {
-                                  _deleteNote(originalIndex);
-                                }
-                              },
-                              itemBuilder:
-                                  (context) => [
-                                    const PopupMenuItem(
-                                      value: 'edit',
-                                      child: ListTile(
-                                        leading: Icon(Icons.edit),
-                                        title: Text('Edit'),
-                                      ),
-                                    ),
-                                    PopupMenuItem(
-                                      value: 'favourite',
-                                      child: ListTile(
-                                        leading: Icon(
-                                          note.isFavourite
-                                              ? Icons.star
-                                              : Icons.star_border,
-                                          color:
-                                              note.isFavourite
-                                                  ? Colors.amber
-                                                  : Colors.grey,
-                                        ),
-                                        title: Text(
-                                          note.isFavourite
-                                              ? 'Unmark Favourite'
-                                              : 'Mark as Favourite',
-                                        ),
-                                      ),
-                                    ),
-                                    const PopupMenuItem(
-                                      value: 'delete',
-                                      child: ListTile(
-                                        leading: Icon(Icons.delete),
-                                        title: Text('Delete'),
-                                      ),
-                                    ),
-                                  ],
-                            ),
                           ),
                         );
                       },
@@ -419,6 +391,7 @@ class _NotesHomePageState extends State<NotesHomePage> {
                 shape: const CircleBorder(),
                 onPressed: () => _openNoteEditScreen(),
                 backgroundColor: Colors.deepPurple,
+                foregroundColor: Colors.white,
                 child: const Icon(Icons.add),
                 tooltip: 'Add Note',
               ),
