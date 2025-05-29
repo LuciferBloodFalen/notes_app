@@ -1,23 +1,58 @@
 import 'package:flutter/material.dart';
 import 'note_edit_screen.dart';
 import 'search_screen.dart';
+import 'settings_screen.dart';
 
 void main() {
   runApp(const MainApp());
 }
 
-class MainApp extends StatelessWidget {
+class MainApp extends StatefulWidget {
   const MainApp({super.key});
+
+  @override
+  State<MainApp> createState() => _MainAppState();
+}
+
+class _MainAppState extends State<MainApp> {
+  ThemeMode _themeMode = ThemeMode.light;
+
+  void _setThemeMode(ThemeMode mode) {
+    setState(() {
+      _themeMode = mode;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: const NotesHomePage(),
+      home: NotesHomePage(onThemeChanged: _setThemeMode, themeMode: _themeMode),
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white,
         appBarTheme: const AppBarTheme(backgroundColor: Colors.deepPurple),
+        brightness: Brightness.light,
+        textTheme: const TextTheme(bodyMedium: TextStyle(color: Colors.black)),
+        inputDecorationTheme: const InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white70,
+          border: OutlineInputBorder(),
+          hintStyle: TextStyle(color: Colors.black54),
+        ),
       ),
+      darkTheme: ThemeData(
+        scaffoldBackgroundColor: Colors.black,
+        appBarTheme: const AppBarTheme(backgroundColor: Colors.deepPurple),
+        brightness: Brightness.dark,
+        textTheme: const TextTheme(bodyMedium: TextStyle(color: Colors.white)),
+        inputDecorationTheme: const InputDecorationTheme(
+          filled: true,
+          fillColor: Color(0xFF222222),
+          border: OutlineInputBorder(),
+          hintStyle: TextStyle(color: Colors.white54),
+        ),
+      ),
+      themeMode: _themeMode,
     );
   }
 }
@@ -31,7 +66,9 @@ class Note {
 }
 
 class NotesHomePage extends StatefulWidget {
-  const NotesHomePage({super.key});
+  final void Function(ThemeMode)? onThemeChanged;
+  final ThemeMode? themeMode;
+  const NotesHomePage({super.key, this.onThemeChanged, this.themeMode});
 
   @override
   State<NotesHomePage> createState() => _NotesHomePageState();
@@ -127,6 +164,20 @@ class _NotesHomePageState extends State<NotesHomePage> {
     });
   }
 
+  void _openSettingsScreen() async {
+    final result = await Navigator.of(context).push<ThemeMode>(
+      MaterialPageRoute(
+        builder:
+            (context) => SettingsScreen(
+              currentThemeMode: widget.themeMode ?? ThemeMode.light,
+            ),
+      ),
+    );
+    if (result != null) {
+      widget.onThemeChanged?.call(result);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Favourites first, then others
@@ -149,6 +200,27 @@ class _NotesHomePageState extends State<NotesHomePage> {
     ];
 
     return Scaffold(
+      drawer: Drawer(
+        child: ListView(
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(color: Colors.deepPurple),
+              child: Text(
+                'Menu',
+                style: TextStyle(color: Colors.white, fontSize: 24),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('Settings'),
+              onTap: () {
+                Navigator.pop(context); // Close the drawer
+                _openSettingsScreen();
+              },
+            ),
+          ],
+        ),
+      ),
       appBar: AppBar(
         title: Text(
           _isSelectionMode ? '${_selectedIndexes.length} selected' : 'Notes',
@@ -201,10 +273,14 @@ class _NotesHomePageState extends State<NotesHomePage> {
                         final isSelected = _selectedIndexes.contains(
                           originalIndex,
                         );
+                        final isDark =
+                            Theme.of(context).brightness == Brightness.dark;
                         return Card(
                           color:
                               isSelected
                                   ? Colors.deepPurple.withOpacity(0.2)
+                                  : isDark
+                                  ? const Color(0xFF222222)
                                   : Colors.white.withOpacity(0.85),
                           margin: const EdgeInsets.symmetric(
                             horizontal: 12,
@@ -231,8 +307,12 @@ class _NotesHomePageState extends State<NotesHomePage> {
                             ),
                             title: Text(
                               note.title.isEmpty ? '(No Title)' : note.title,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).textTheme.bodyMedium?.color,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,

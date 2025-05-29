@@ -38,6 +38,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final textColor = Theme.of(context).textTheme.bodyMedium?.color;
     return Scaffold(
       appBar: AppBar(title: const Text('Search Notes')),
       body: Column(
@@ -46,12 +47,7 @@ class _SearchScreenState extends State<SearchScreen> {
             padding: const EdgeInsets.all(12.0),
             child: TextField(
               autofocus: true,
-              decoration: const InputDecoration(
-                hintText: 'Search notes...',
-                border: OutlineInputBorder(),
-                filled: true,
-                fillColor: Colors.white70,
-              ),
+              decoration: const InputDecoration(hintText: 'Search notes...'),
               onChanged: _search,
             ),
           ),
@@ -62,27 +58,33 @@ class _SearchScreenState extends State<SearchScreen> {
                     : ListView.builder(
                       itemCount: _results.length,
                       itemBuilder: (context, index) {
+                        final note = _results[index];
                         return Card(
-                          color: Colors.white.withOpacity(0.85),
+                          color: Theme.of(context).cardColor,
                           margin: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 4,
                           ),
                           child: ListTile(
+                            leading: Icon(
+                              note.isFavourite ? Icons.star : Icons.star_border,
+                              color:
+                                  note.isFavourite ? Colors.amber : Colors.grey,
+                            ),
                             title: Text(
-                              _results[index].title.isEmpty
-                                  ? '(No Title)'
-                                  : _results[index].title,
-                              style: const TextStyle(
+                              note.title.isEmpty ? '(No Title)' : note.title,
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
+                                color: textColor,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                             subtitle: Text(
-                              _results[index].content,
+                              note.content,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
+                              style: TextStyle(color: textColor),
                             ),
                           ),
                         );

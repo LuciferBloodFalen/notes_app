@@ -83,44 +83,28 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
         ),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Container(
-            color: Colors.white,
-            child: Column(
-              children: [
-                TextField(
-                  controller: _titleController,
-                  autofocus: true,
+          child: Column(
+            children: [
+              TextField(
+                controller: _titleController,
+                autofocus: true,
+                decoration: const InputDecoration(hintText: 'Title'),
+                textInputAction: TextInputAction.next,
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: TextField(
+                  controller: _contentController,
+                  maxLines: null,
+                  expands: true,
+                  textAlignVertical: TextAlignVertical.top,
                   decoration: const InputDecoration(
-                    hintText: 'Title',
-                    border: OutlineInputBorder(),
-                    filled: true,
-                    fillColor: Colors.white70,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
+                    hintText: 'Type your note here...',
                   ),
-                  textInputAction: TextInputAction.next,
+                  onSubmitted: (_) => _saveNoteAndPop(),
                 ),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: TextField(
-                    controller: _contentController,
-                    maxLines: null,
-                    expands: true,
-                    textAlignVertical: TextAlignVertical.top,
-                    decoration: const InputDecoration(
-                      hintText: 'Type your note here...',
-                      border: OutlineInputBorder(),
-                      filled: true,
-                      fillColor: Colors.white70,
-                      contentPadding: EdgeInsets.all(16),
-                    ),
-                    onSubmitted: (_) => _saveNoteAndPop(),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
