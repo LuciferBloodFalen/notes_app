@@ -58,12 +58,18 @@ class _MainAppState extends State<MainApp> {
   }
 }
 
-// Note model with title, content, and favourite flag
+// Note model with title, content, favourite flag, and cardColor
 class Note {
   String title;
   String content;
   bool isFavourite;
-  Note({required this.title, required this.content, this.isFavourite = false});
+  Color cardColor;
+  Note({
+    required this.title,
+    required this.content,
+    this.isFavourite = false,
+    this.cardColor = Colors.white,
+  });
 }
 
 class NotesHomePage extends StatefulWidget {
@@ -85,14 +91,16 @@ class _NotesHomePageState extends State<NotesHomePage> {
   void _openNoteEditScreen({int? index}) async {
     if (_isSelectionMode) return; // Prevent editing while selecting
     final isEditing = index != null && index! >= 0 && index < _notes.length;
+    final note = isEditing ? _notes[index!] : null;
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder:
             (context) => NoteEditScreen(
-              initialTitle: isEditing ? _notes[index!].title : null,
-              initialContent: isEditing ? _notes[index!].content : null,
-              isFavourite: isEditing ? _notes[index!].isFavourite : false,
-              onSave: (title, content, isFavourite) {
+              initialTitle: note?.title,
+              initialContent: note?.content,
+              isFavourite: note?.isFavourite ?? false,
+              initialColor: note?.cardColor ?? Colors.white,
+              onSave: (title, content, isFavourite, cardColor) {
                 if (title.trim().isEmpty && content.trim().isEmpty) return;
                 setState(() {
                   if (isEditing) {
@@ -100,6 +108,7 @@ class _NotesHomePageState extends State<NotesHomePage> {
                       title: title,
                       content: content,
                       isFavourite: isFavourite,
+                      cardColor: cardColor,
                     );
                   } else {
                     _notes.add(
@@ -107,6 +116,7 @@ class _NotesHomePageState extends State<NotesHomePage> {
                         title: title,
                         content: content,
                         isFavourite: isFavourite,
+                        cardColor: cardColor,
                       ),
                     );
                   }
@@ -301,15 +311,8 @@ class _NotesHomePageState extends State<NotesHomePage> {
                         final isSelected = _selectedIndexes.contains(
                           originalIndex,
                         );
-                        final isDark =
-                            Theme.of(context).brightness == Brightness.dark;
                         return Card(
-                          color:
-                              isSelected
-                                  ? Colors.deepPurple.withOpacity(0.2)
-                                  : isDark
-                                  ? const Color(0xFF222222)
-                                  : Colors.white.withOpacity(0.85),
+                          color: note.cardColor,
                           margin: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 4,

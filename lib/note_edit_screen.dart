@@ -4,13 +4,21 @@ class NoteEditScreen extends StatefulWidget {
   final String? initialTitle;
   final String? initialContent;
   final bool isFavourite;
-  final void Function(String title, String content, bool isFavourite) onSave;
+  final Color? initialColor;
+  final void Function(
+    String title,
+    String content,
+    bool isFavourite,
+    Color cardColor,
+  )
+  onSave;
 
   const NoteEditScreen({
     super.key,
     this.initialTitle,
     this.initialContent,
     this.isFavourite = false,
+    this.initialColor,
     required this.onSave,
   });
 
@@ -22,6 +30,18 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
   late final TextEditingController _titleController;
   late final TextEditingController _contentController;
   late bool _isFavourite;
+  late Color _cardColor;
+
+  final List<Color> _availableColors = [
+    Colors.white,
+    Colors.yellow.shade100,
+    Colors.green.shade100,
+    Colors.blue.shade100,
+    Colors.pink.shade100,
+    Colors.purple.shade100,
+    Colors.orange.shade100,
+    Colors.grey.shade200,
+  ];
 
   @override
   void initState() {
@@ -31,6 +51,7 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
       text: widget.initialContent ?? '',
     );
     _isFavourite = widget.isFavourite;
+    _cardColor = widget.initialColor ?? Colors.white;
   }
 
   @override
@@ -47,7 +68,7 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
       Navigator.of(context).pop();
       return;
     }
-    widget.onSave(title, content, _isFavourite);
+    widget.onSave(title, content, _isFavourite, _cardColor);
     Navigator.of(context).pop();
   }
 
@@ -85,6 +106,48 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
+              // Color picker row
+              SizedBox(
+                height: 40,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children:
+                      _availableColors.map((color) {
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _cardColor = color;
+                            });
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: color,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color:
+                                    _cardColor == color
+                                        ? Colors.deepPurple
+                                        : Colors.grey,
+                                width: 2,
+                              ),
+                            ),
+                            child:
+                                _cardColor == color
+                                    ? const Icon(
+                                      Icons.check,
+                                      color: Colors.deepPurple,
+                                      size: 18,
+                                    )
+                                    : null,
+                          ),
+                        );
+                      }).toList(),
+                ),
+              ),
+              const SizedBox(height: 16),
               TextField(
                 controller: _titleController,
                 autofocus: true,
