@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'main.dart'; // For Note model
+import 'search_screen.dart'; // Import SearchScreen
 
 class PinnedNotesScreen extends StatelessWidget {
   final List<Note> notes;
@@ -37,6 +38,20 @@ class PinnedNotesScreen extends StatelessWidget {
           child: Text('Pinned Notes'),
         ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            tooltip: 'Search Pinned Notes',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder:
+                      (context) => SearchScreen(notes: notes, drawer: drawer),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body:
           notes.isEmpty
@@ -51,11 +66,12 @@ class PinnedNotesScreen extends StatelessWidget {
                 itemBuilder: (context, idx) {
                   final note = notes[idx];
                   return Card(
-                    color: note.cardColor,
+                    color: Theme.of(context).cardColor,
                     margin: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 4,
                     ),
+                    elevation: 2,
                     child: ListTile(
                       title: Text(
                         note.title.isEmpty ? '(No Title)' : note.title,
@@ -64,11 +80,6 @@ class PinnedNotesScreen extends StatelessWidget {
                           color: Theme.of(context).textTheme.bodyMedium?.color,
                         ),
                         maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      subtitle: Text(
-                        note.content,
-                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                       trailing: const Icon(

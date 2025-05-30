@@ -34,26 +34,104 @@ class _MainAppState extends State<MainApp> {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white,
-        appBarTheme: const AppBarTheme(backgroundColor: Colors.deepPurple),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.deepPurple,
+          elevation: 2,
+          iconTheme: IconThemeData(color: Colors.white),
+          titleTextStyle: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
+          ),
+        ),
         brightness: Brightness.light,
-        textTheme: const TextTheme(bodyMedium: TextStyle(color: Colors.black)),
+        cardColor: Colors.white,
+        floatingActionButtonTheme: const FloatingActionButtonThemeData(
+          backgroundColor: Colors.deepPurple,
+          foregroundColor: Colors.white,
+          shape: CircleBorder(),
+        ),
+        textTheme: const TextTheme(
+          bodyMedium: TextStyle(color: Colors.black),
+          titleLarge: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+        ),
         inputDecorationTheme: const InputDecorationTheme(
           filled: true,
           fillColor: Colors.white70,
           border: OutlineInputBorder(),
           hintStyle: TextStyle(color: Colors.black54),
         ),
+        snackBarTheme: const SnackBarThemeData(
+          backgroundColor: Colors.deepPurple,
+          contentTextStyle: TextStyle(color: Colors.white),
+        ),
+        dividerTheme: const DividerThemeData(
+          color: Colors.deepPurple,
+          thickness: 0.8,
+        ),
+        iconTheme: const IconThemeData(color: Colors.deepPurple),
+        listTileTheme: const ListTileThemeData(
+          iconColor: Colors.deepPurple,
+          textColor: Colors.black,
+        ),
+        // Add highlight and splash color for dark mode consistency
+        highlightColor: Colors.deepPurple.withOpacity(0.08),
+        splashColor: Colors.deepPurple.withOpacity(0.12),
+        // Add dialog and popup theme for dark mode
+        dialogBackgroundColor: Colors.white,
+        popupMenuTheme: const PopupMenuThemeData(
+          color: Colors.white,
+          textStyle: TextStyle(color: Colors.black),
+        ),
       ),
       darkTheme: ThemeData(
         scaffoldBackgroundColor: Colors.black,
-        appBarTheme: const AppBarTheme(backgroundColor: Colors.deepPurple),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.deepPurple,
+          elevation: 2,
+          iconTheme: IconThemeData(color: Colors.white),
+          titleTextStyle: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
+          ),
+        ),
         brightness: Brightness.dark,
-        textTheme: const TextTheme(bodyMedium: TextStyle(color: Colors.white)),
+        cardColor: const Color(0xFF222222),
+        floatingActionButtonTheme: const FloatingActionButtonThemeData(
+          backgroundColor: Colors.deepPurple,
+          foregroundColor: Colors.white,
+          shape: CircleBorder(),
+        ),
+        textTheme: const TextTheme(
+          bodyMedium: TextStyle(color: Colors.white),
+          titleLarge: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+        ),
         inputDecorationTheme: const InputDecorationTheme(
           filled: true,
           fillColor: Color(0xFF222222),
           border: OutlineInputBorder(),
           hintStyle: TextStyle(color: Colors.white54),
+        ),
+        snackBarTheme: const SnackBarThemeData(
+          backgroundColor: Colors.deepPurple,
+          contentTextStyle: TextStyle(color: Colors.white),
+        ),
+        dividerTheme: const DividerThemeData(
+          color: Colors.deepPurple,
+          thickness: 0.8,
+        ),
+        iconTheme: const IconThemeData(color: Colors.deepPurple),
+        listTileTheme: const ListTileThemeData(
+          iconColor: Colors.deepPurple,
+          textColor: Colors.white,
+        ),
+        highlightColor: Colors.deepPurple.withOpacity(0.15),
+        splashColor: Colors.deepPurple.withOpacity(0.18),
+        dialogBackgroundColor: Color(0xFF222222),
+        popupMenuTheme: const PopupMenuThemeData(
+          color: Color(0xFF222222),
+          textStyle: TextStyle(color: Colors.white),
         ),
       ),
       themeMode: _themeMode,
@@ -342,7 +420,9 @@ class _NotesHomePageState extends State<NotesHomePage> {
             color: Colors.white,
           ),
           child: Text(
-            _isSelectionMode ? '${_selectedIndexes.length} selected' : 'Notes',
+            _isSelectionMode
+                ? '${_selectedIndexes.length} selected'
+                : 'All Notes',
           ),
         ),
         centerTitle: true,
@@ -417,7 +497,7 @@ class _NotesHomePageState extends State<NotesHomePage> {
                           originalIndex,
                         );
                         return Card(
-                          color: note.cardColor,
+                          color: Theme.of(context).cardColor,
                           margin: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 4,

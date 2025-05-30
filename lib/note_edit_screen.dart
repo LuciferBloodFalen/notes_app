@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 class NoteEditScreen extends StatefulWidget {
@@ -127,6 +130,38 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
     Navigator.of(context).pop();
   }
 
+  Future<void> _saveAsTxt() async {
+    final title = _titleController.text.trim();
+    final content = _contentController.text.trim();
+    final fileName = (title.isEmpty ? 'Untitled Note' : title) + '.txt';
+    try {
+      String? outputPath;
+      if (!mounted) return;
+      final result = await FilePicker.platform.saveFile(
+        dialogTitle: 'Save Note As',
+        fileName: fileName,
+        type: FileType.custom,
+        allowedExtensions: ['txt'],
+      );
+      if (result != null) {
+        outputPath = result;
+        final file = File(outputPath);
+        await file.writeAsString(
+          'Title: ' + (title.isEmpty ? '(No Title)' : title) + '\n\n' + content,
+        );
+        if (!mounted) return;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Note saved as $fileName')));
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to save note: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -137,58 +172,160 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
       child: Scaffold(
         drawer: widget.drawer,
         appBar: AppBar(
-          leading:
-              widget.drawer != null
-                  ? Builder(
-                    builder:
-                        (context) => IconButton(
-                          icon: const Icon(Icons.menu),
-                          onPressed: () => Scaffold.of(context).openDrawer(),
-                        ),
-                  )
-                  : null,
-          title: DefaultTextStyle(
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-              color: Colors.white,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              _saveNoteAndPop();
+            },
+          ),
+          title: Container(
+            decoration: BoxDecoration(
+              color: Colors.deepPurple.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: Text(widget.initialTitle == null ? 'Add Note' : 'Edit Note'),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+            child: TextField(
+              controller: _titleController,
+              autofocus: widget.initialTitle == null,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 22,
+                color: Colors.white,
+                letterSpacing: 0.5,
+                shadows: [
+                  Shadow(
+                    color: Colors.black26,
+                    offset: Offset(0, 1),
+                    blurRadius: 2,
+                  ),
+                ],
+              ),
+              decoration: const InputDecoration(
+                hintText: 'Title',
+                border: InputBorder.none,
+                hintStyle: TextStyle(
+                  color: Colors.white54,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                ),
+                contentPadding: EdgeInsets.zero,
+                isDense: true,
+              ),
+              textInputAction: TextInputAction.next,
+            ),
           ),
           actions: [
-            IconButton(
-              icon: Icon(
-                _isPinned ? Icons.push_pin : Icons.push_pin_outlined,
-                color: _isPinned ? Colors.deepPurple : Colors.white,
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert, size: 28, color: Colors.white),
+              color: Theme.of(context).cardColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-              tooltip: _isPinned ? 'Unpin Note' : 'Pin Note',
-              onPressed: () {
-                setState(() {
-                  _isPinned = !_isPinned;
-                });
+              elevation: 8,
+              offset: const Offset(0, 40),
+              onSelected: (value) {
+                switch (value) {
+                  case 'pin':
+                    setState(() {
+                      _isPinned = !_isPinned;
+                    });
+                    break;
+                  case 'set_password':
+                    _showPasswordDialog();
+                    break;
+                  case 'remove_password':
+                    _removePassword();
+                    break;
+                  case 'save':
+                    _saveNoteAndPop();
+                    break;
+                  case 'save_txt':
+                    _saveAsTxt();
+                    break;
+                }
               },
-            ),
-            IconButton(
-              icon: const Icon(Icons.lock),
-              tooltip: _password == null ? 'Set Password' : 'Change Password',
-              onPressed: _showPasswordDialog,
-            ),
-            if (_password != null)
-              IconButton(
-                icon: const Icon(Icons.lock_open),
-                tooltip: 'Remove Password',
-                onPressed: _removePassword,
-              ),
-            IconButton(
-              icon: const Icon(Icons.save),
-              onPressed: _saveNoteAndPop,
-              tooltip: 'Save',
+              itemBuilder:
+                  (context) => [
+                    PopupMenuItem(
+                      value: 'pin',
+                      child: Row(
+                        children: [
+                          Icon(
+                            _isPinned
+                                ? Icons.push_pin
+                                : Icons.push_pin_outlined,
+                            color: Colors.deepPurple,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            _isPinned ? 'Unpin Note' : 'Pin Note',
+                            style: TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'set_password',
+                      child: Row(
+                        children: const [
+                          Icon(Icons.lock, color: Colors.deepPurple),
+                          SizedBox(width: 10),
+                          Text(
+                            'Set/Change Password',
+                            style: TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (_password != null)
+                      PopupMenuItem(
+                        value: 'remove_password',
+                        child: Row(
+                          children: const [
+                            Icon(Icons.lock_open, color: Colors.deepPurple),
+                            SizedBox(width: 10),
+                            Text(
+                              'Remove Password',
+                              style: TextStyle(fontWeight: FontWeight.w500),
+                            ),
+                          ],
+                        ),
+                      ),
+                    const PopupMenuDivider(),
+                    PopupMenuItem(
+                      value: 'save',
+                      child: Row(
+                        children: const [
+                          Icon(Icons.save, color: Colors.deepPurple),
+                          SizedBox(width: 10),
+                          Text(
+                            'Save',
+                            style: TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'save_txt',
+                      child: Row(
+                        children: const [
+                          Icon(Icons.download, color: Colors.deepPurple),
+                          SizedBox(width: 10),
+                          Text(
+                            'Save as .txt',
+                            style: TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
             ),
           ],
         ),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Color picker row
               SizedBox(
@@ -217,6 +354,18 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
                                         : Colors.grey,
                                 width: 2,
                               ),
+                              boxShadow:
+                                  _cardColor == color
+                                      ? [
+                                        BoxShadow(
+                                          color: Colors.deepPurple.withOpacity(
+                                            0.2,
+                                          ),
+                                          blurRadius: 6,
+                                          spreadRadius: 1,
+                                        ),
+                                      ]
+                                      : [],
                             ),
                             child:
                                 _cardColor == color
@@ -232,21 +381,17 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              TextField(
-                controller: _titleController,
-                autofocus: true,
-                decoration: const InputDecoration(hintText: 'Title'),
-                textInputAction: TextInputAction.next,
-              ),
-              const SizedBox(height: 16),
               Expanded(
                 child: TextField(
                   controller: _contentController,
                   maxLines: null,
                   expands: true,
                   textAlignVertical: TextAlignVertical.top,
+                  style: const TextStyle(fontSize: 16),
                   decoration: const InputDecoration(
                     hintText: 'Type your note here...',
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.all(12),
                   ),
                   onSubmitted: (_) => _saveNoteAndPop(),
                 ),

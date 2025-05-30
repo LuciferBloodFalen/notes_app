@@ -63,10 +63,21 @@ class _SearchScreenState extends State<SearchScreen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(12.0),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: TextField(
               autofocus: true,
-              decoration: const InputDecoration(hintText: 'Search notes...'),
+              style: const TextStyle(fontSize: 16),
+              decoration: InputDecoration(
+                hintText: 'Search notes...',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                prefixIcon: const Icon(Icons.search, color: Colors.deepPurple),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+              ),
               onChanged: _search,
             ),
           ),
@@ -89,6 +100,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             horizontal: 12,
                             vertical: 4,
                           ),
+                          elevation: 2,
                           child: ListTile(
                             leading: Icon(
                               note.isPinned
@@ -107,12 +119,6 @@ class _SearchScreenState extends State<SearchScreen> {
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                            ),
-                            subtitle: Text(
-                              note.content,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(color: textColor),
                             ),
                           ),
                         );

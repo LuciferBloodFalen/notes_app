@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'main.dart';
+import 'search_screen.dart';
 
 class RecycleBinScreen extends StatefulWidget {
   final List<Note> deletedNotes;
@@ -52,7 +53,6 @@ class _RecycleBinScreenState extends State<RecycleBinScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       drawer: widget.drawer,
       appBar: AppBar(
@@ -80,7 +80,23 @@ class _RecycleBinScreenState extends State<RecycleBinScreen> {
         ),
         actions:
             _selectedIndexes.isEmpty
-                ? []
+                ? [
+                  IconButton(
+                    icon: const Icon(Icons.search),
+                    tooltip: 'Search Recycle Bin',
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder:
+                              (context) => SearchScreen(
+                                notes: _binNotes,
+                                drawer: widget.drawer,
+                              ),
+                        ),
+                      );
+                    },
+                  ),
+                ]
                 : [
                   IconButton(
                     icon: const Icon(Icons.restore),
@@ -111,16 +127,12 @@ class _RecycleBinScreenState extends State<RecycleBinScreen> {
                         final note = _binNotes[idx];
                         final isSelected = _selectedIndexes.contains(idx);
                         return Card(
-                          color:
-                              isSelected
-                                  ? Colors.deepPurple.withOpacity(0.2)
-                                  : isDark
-                                  ? const Color(0xFF222222)
-                                  : Colors.white.withOpacity(0.85),
+                          color: Theme.of(context).cardColor,
                           margin: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 4,
                           ),
+                          elevation: 2,
                           child: ListTile(
                             leading: Icon(
                               note.isPinned
@@ -142,17 +154,6 @@ class _RecycleBinScreenState extends State<RecycleBinScreen> {
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                            ),
-                            subtitle: Text(
-                              note.content,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).textTheme.bodyMedium?.color,
-                              ),
                             ),
                             selected: isSelected,
                             onLongPress: () => _toggleSelect(idx),

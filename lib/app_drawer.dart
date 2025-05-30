@@ -18,16 +18,29 @@ class AppDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Drawer(
       child: ListView(
+        padding: EdgeInsets.zero,
         children: [
           const DrawerHeader(
-            decoration: BoxDecoration(color: Colors.deepPurple),
+            decoration: BoxDecoration(
+              color: Colors.deepPurple,
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(24),
+                bottomRight: Radius.circular(24),
+              ),
+            ),
             child: DefaultTextStyle(
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 24,
                 color: Colors.white,
               ),
-              child: Text('Menu'),
+              child: Row(
+                children: [
+                  Icon(Icons.sticky_note_2, color: Colors.white, size: 32),
+                  SizedBox(width: 12),
+                  Text('Notes App'),
+                ],
+              ),
             ),
           ),
           ListTile(

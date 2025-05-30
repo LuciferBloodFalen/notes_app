@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'main.dart'; // For Note model
+import 'search_screen.dart'; // Import SearchScreen
 
 class LockedNotesScreen extends StatelessWidget {
   final List<Note> notes;
@@ -38,6 +39,20 @@ class LockedNotesScreen extends StatelessWidget {
           child: Text('Lock Notes'),
         ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            tooltip: 'Search Locked Notes',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder:
+                      (context) => SearchScreen(notes: notes, drawer: drawer),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body:
           notes.isEmpty
@@ -52,11 +67,12 @@ class LockedNotesScreen extends StatelessWidget {
                 itemBuilder: (context, idx) {
                   final note = notes[idx];
                   return Card(
-                    color: note.cardColor,
+                    color: Theme.of(context).cardColor,
                     margin: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 4,
                     ),
+                    elevation: 2,
                     child: ListTile(
                       leading: const Icon(Icons.lock, color: Colors.deepPurple),
                       title: Text(
@@ -67,12 +83,6 @@ class LockedNotesScreen extends StatelessWidget {
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                      ),
-                      subtitle: Text(
-                        note.content,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: textColor),
                       ),
                       onTap: () => onNoteTap(note),
                     ),

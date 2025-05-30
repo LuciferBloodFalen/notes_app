@@ -55,6 +55,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: Colors.deepPurple,
       ),
       body: ListView(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         children: [
           const ListTile(
             title: Text(
@@ -66,10 +67,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: const Text('Dark Mode'),
             value: _selectedMode == ThemeMode.dark,
             onChanged: (value) => _onSwitchChanged(value),
-            secondary: const Icon(Icons.dark_mode),
+            secondary: const Icon(Icons.dark_mode, color: Colors.deepPurple),
+            activeColor: Colors.deepPurple,
           ),
           ListTile(
-            leading: const Icon(Icons.brightness_auto),
+            leading: const Icon(
+              Icons.brightness_auto,
+              color: Colors.deepPurple,
+            ),
             title: const Text('System Default'),
             trailing:
                 _selectedMode == ThemeMode.system
