@@ -65,11 +65,14 @@ class Note {
   String content;
   bool isPinned;
   Color cardColor;
+  String? password; // Add this field
+
   Note({
     required this.title,
     required this.content,
     this.isPinned = false,
     this.cardColor = Colors.white,
+    this.password, // Add this parameter
   });
 }
 
@@ -101,7 +104,8 @@ class _NotesHomePageState extends State<NotesHomePage> {
               initialContent: note?.content,
               isPinned: note?.isPinned ?? false,
               initialColor: note?.cardColor ?? Colors.white,
-              onSave: (title, content, isPinned, cardColor) {
+              initialPassword: note?.password, // Pass password
+              onSave: (title, content, isPinned, cardColor, password) {
                 if (title.trim().isEmpty && content.trim().isEmpty) return;
                 setState(() {
                   if (isEditing) {
@@ -110,6 +114,7 @@ class _NotesHomePageState extends State<NotesHomePage> {
                       content: content,
                       isPinned: isPinned,
                       cardColor: cardColor,
+                      password: password, // Save password
                     );
                   } else {
                     _notes.add(
@@ -118,6 +123,7 @@ class _NotesHomePageState extends State<NotesHomePage> {
                         content: content,
                         isPinned: isPinned,
                         cardColor: cardColor,
+                        password: password, // Save password
                       ),
                     );
                   }
@@ -399,11 +405,55 @@ class _NotesHomePageState extends State<NotesHomePage> {
                                     : null,
                             selected: isSelected,
                             onLongPress: () => _toggleSelect(originalIndex),
-                            onTap: () {
+                            onTap: () async {
                               if (_isSelectionMode) {
                                 _toggleSelect(originalIndex);
                               } else {
-                                _openNoteEditScreen(index: originalIndex);
+                                final note = _notes[originalIndex];
+                                if (note.password != null &&
+                                    note.password!.isNotEmpty) {
+                                  final controller = TextEditingController();
+                                  final result = await showDialog<bool>(
+                                    context: context,
+                                    builder:
+                                        (context) => AlertDialog(
+                                          title: const Text('Enter Password'),
+                                          content: TextField(
+                                            controller: controller,
+                                            keyboardType: TextInputType.number,
+                                            maxLength: 4,
+                                            obscureText: true,
+                                            decoration: const InputDecoration(
+                                              hintText: '4-digit password',
+                                            ),
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed:
+                                                  () => Navigator.pop(
+                                                    context,
+                                                    false,
+                                                  ),
+                                              child: const Text('Cancel'),
+                                            ),
+                                            TextButton(
+                                              onPressed: () {
+                                                if (controller.text ==
+                                                    note.password) {
+                                                  Navigator.pop(context, true);
+                                                }
+                                              },
+                                              child: const Text('OK'),
+                                            ),
+                                          ],
+                                        ),
+                                  );
+                                  if (result == true) {
+                                    _openNoteEditScreen(index: originalIndex);
+                                  }
+                                } else {
+                                  _openNoteEditScreen(index: originalIndex);
+                                }
                               }
                             },
                           ),

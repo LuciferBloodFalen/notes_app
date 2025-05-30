@@ -5,11 +5,13 @@ class NoteEditScreen extends StatefulWidget {
   final String? initialContent;
   final bool isPinned;
   final Color? initialColor;
+  final String? initialPassword; // Add this
   final void Function(
     String title,
     String content,
     bool isPinned,
     Color cardColor,
+    String? password, // Add this
   )
   onSave;
 
@@ -19,6 +21,7 @@ class NoteEditScreen extends StatefulWidget {
     this.initialContent,
     this.isPinned = false,
     this.initialColor,
+    this.initialPassword, // Add this
     required this.onSave,
   });
 
@@ -31,6 +34,7 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
   late final TextEditingController _contentController;
   late bool _isPinned;
   late Color _cardColor;
+  late String? _password;
 
   final List<Color> _availableColors = [
     Colors.white,
@@ -52,6 +56,7 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
     );
     _isPinned = widget.isPinned;
     _cardColor = widget.initialColor ?? Colors.white;
+    _password = widget.initialPassword;
   }
 
   @override
@@ -61,6 +66,54 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
     super.dispose();
   }
 
+  void _showPasswordDialog() async {
+    final controller = TextEditingController(text: _password ?? '');
+    final result = await showDialog<String>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Set 4-digit Password'),
+            content: TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              maxLength: 4,
+              obscureText: true,
+              decoration: const InputDecoration(
+                hintText: 'Enter 4-digit password',
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, null),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  final value = controller.text.trim();
+                  if (value.isEmpty) {
+                    Navigator.pop(context, null);
+                  } else if (value.length == 4 && int.tryParse(value) != null) {
+                    Navigator.pop(context, value);
+                  }
+                },
+                child: const Text('Set'),
+              ),
+            ],
+          ),
+    );
+    if (result != null || controller.text.isEmpty) {
+      setState(() {
+        _password = result;
+      });
+    }
+  }
+
+  void _removePassword() {
+    setState(() {
+      _password = null;
+    });
+  }
+
   void _saveNoteAndPop() {
     final title = _titleController.text.trim();
     final content = _contentController.text.trim();
@@ -68,7 +121,7 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
       Navigator.of(context).pop();
       return;
     }
-    widget.onSave(title, content, _isPinned, _cardColor);
+    widget.onSave(title, content, _isPinned, _cardColor, _password);
     Navigator.of(context).pop();
   }
 
@@ -102,6 +155,17 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
                 });
               },
             ),
+            IconButton(
+              icon: const Icon(Icons.lock),
+              tooltip: _password == null ? 'Set Password' : 'Change Password',
+              onPressed: _showPasswordDialog,
+            ),
+            if (_password != null)
+              IconButton(
+                icon: const Icon(Icons.lock_open),
+                tooltip: 'Remove Password',
+                onPressed: _removePassword,
+              ),
             IconButton(
               icon: const Icon(Icons.save),
               onPressed: _saveNoteAndPop,
