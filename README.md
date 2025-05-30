@@ -19,7 +19,42 @@ A modern, feature-rich Flutter notes application.
 
 ## Screenshots
 
-<!-- Add screenshots here -->
+<div align="center">
+
+<table>
+  <tr>
+    <td align="center"><b>Home</b></td>
+    <td align="center"><b>Edit Note</b></td>
+    <td align="center"><b>Locked</b></td>
+    <td align="center"><b>Pinned</b></td>
+  </tr>
+  <tr>
+    <td><img src="assets/screenshots/home1.png" alt="Home 1" width="180"/></td>
+    <td><img src="assets/screenshots/edit1.png" alt="Edit 1" width="180"/></td>
+    <td><img src="assets/screenshots/lock1.png" alt="Lock 1" width="180"/></td>
+    <td><img src="assets/screenshots/pin1.png" alt="Pin 1" width="180"/></td>
+  </tr>
+  <tr>
+    <td><img src="assets/screenshots/home2.png" alt="Home 2" width="180"/></td>
+    <td><img src="assets/screenshots/edit2.png" alt="Edit 2" width="180"/></td>
+    <td><img src="assets/screenshots/lock2.png" alt="Lock 2" width="180"/></td>
+    <td><img src="assets/screenshots/search1.png" alt="Search" width="180"/></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Recycle Bin</b></td>
+    <td align="center"><b>Settings</b></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><img src="assets/screenshots/bin1.png" alt="Recycle Bin" width="180"/></td>
+    <td><img src="assets/screenshots/settings1.png" alt="Settings" width="180"/></td>
+    <td></td>
+    <td></td>
+  </tr>
+</table>
+
+</div>
 
 ## APK Download
 
