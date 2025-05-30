@@ -3,6 +3,7 @@ import 'note_edit_screen.dart';
 import 'search_screen.dart';
 import 'settings_screen.dart';
 import 'recycle_bin_screen.dart';
+import 'pinned_notes_screen.dart'; // Add this import
 
 void main() {
   runApp(const MainApp());
@@ -208,6 +209,23 @@ class _NotesHomePageState extends State<NotesHomePage> {
     }
   }
 
+  void _openPinnedNotesScreen() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder:
+            (context) => PinnedNotesScreen(
+              notes: _notes.where((n) => n.isPinned).toList(),
+              onNoteTap: (note) {
+                final index = _notes.indexOf(note);
+                if (index != -1) {
+                  _openNoteEditScreen(index: index);
+                }
+              },
+            ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Pinned first, then others
@@ -243,6 +261,17 @@ class _NotesHomePageState extends State<NotesHomePage> {
                 ),
                 child: Text('Menu'),
               ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.push_pin),
+              title: const Text(
+                'Pinned Notes',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _openPinnedNotesScreen();
+              },
             ),
             ListTile(
               leading: const Icon(Icons.delete_outline),
