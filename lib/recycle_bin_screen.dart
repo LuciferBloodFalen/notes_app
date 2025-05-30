@@ -56,28 +56,33 @@ class _RecycleBinScreenState extends State<RecycleBinScreen> {
     return Scaffold(
       drawer: widget.drawer,
       appBar: AppBar(
-        leading:
-            widget.drawer != null
-                ? Builder(
-                  builder:
-                      (context) => IconButton(
-                        icon: const Icon(Icons.menu),
-                        onPressed: () => Scaffold.of(context).openDrawer(),
-                      ),
-                )
-                : null,
+        elevation: 6,
+        shadowColor: Colors.deepPurple.withOpacity(0.18),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(18)),
+        ),
         title: DefaultTextStyle(
           style: const TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 20,
+            fontSize: 22,
             color: Colors.white,
+            letterSpacing: 0.5,
+            shadows: [
+              Shadow(
+                color: Colors.black26,
+                offset: Offset(0, 1),
+                blurRadius: 2,
+              ),
+            ],
           ),
           child: Text(
             _selectedIndexes.isEmpty
                 ? 'Recycle Bin'
-                : '${_selectedIndexes.length} selected',
+                : '${_selectedIndexes.length} selected',
           ),
         ),
+        centerTitle: true,
+        backgroundColor: Colors.deepPurple,
         actions:
             _selectedIndexes.isEmpty
                 ? [
@@ -110,60 +115,176 @@ class _RecycleBinScreenState extends State<RecycleBinScreen> {
                   ),
                 ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child:
-                _binNotes.isEmpty
-                    ? const Center(
-                      child: Text(
-                        'Recycle bin is empty.',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    )
-                    : ListView.builder(
-                      itemCount: _binNotes.length,
-                      itemBuilder: (context, idx) {
-                        final note = _binNotes[idx];
-                        final isSelected = _selectedIndexes.contains(idx);
-                        return Card(
-                          color: Theme.of(context).cardColor,
-                          margin: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 4,
-                          ),
-                          elevation: 2,
-                          child: ListTile(
-                            leading: Icon(
-                              note.isPinned
-                                  ? Icons.push_pin
-                                  : Icons.push_pin_outlined,
-                              color:
-                                  note.isPinned
-                                      ? Colors.deepPurple
-                                      : Colors.grey,
-                            ),
-                            title: Text(
-                              note.title.isEmpty ? '(No Title)' : note.title,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).textTheme.bodyMedium?.color,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            selected: isSelected,
-                            onLongPress: () => _toggleSelect(idx),
-                            onTap: () => _toggleSelect(idx),
-                          ),
-                        );
-                      },
-                    ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Theme.of(context).brightness == Brightness.dark
+                  ? const Color(0xFF1A0033)
+                  : Colors.deepPurple.shade50,
+              Theme.of(context).scaffoldBackgroundColor,
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
-        ],
+        ),
+        child: Column(
+          children: [
+            Expanded(
+              child:
+                  _binNotes.isEmpty
+                      ? const Center(
+                        child: Text(
+                          'Recycle bin is empty.',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      )
+                      : ListView.builder(
+                        itemCount: _binNotes.length,
+                        itemBuilder: (context, idx) {
+                          final note = _binNotes[idx];
+                          final isSelected = _selectedIndexes.contains(idx);
+                          return Card(
+                            color:
+                                note.isPinned
+                                    ? Colors.deepPurple.withOpacity(0.09)
+                                    : Theme.of(context).cardColor,
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 7,
+                            ),
+                            elevation: isSelected ? 8 : 3,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              side:
+                                  isSelected
+                                      ? BorderSide(
+                                        color: Colors.deepPurple,
+                                        width: 2.2,
+                                      )
+                                      : BorderSide.none,
+                            ),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 18,
+                                vertical: 10,
+                              ),
+                              leading: Icon(
+                                note.isPinned
+                                    ? Icons.push_pin
+                                    : Icons.push_pin_outlined,
+                                color:
+                                    note.isPinned
+                                        ? Colors.deepPurple
+                                        : Colors.grey,
+                              ),
+                              title: Text(
+                                note.title.isEmpty ? '(No Title)' : note.title,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color:
+                                      isSelected
+                                          ? Colors.deepPurple
+                                          : Theme.of(
+                                            context,
+                                          ).textTheme.bodyMedium?.color,
+                                  fontSize: 18,
+                                  letterSpacing: 0.2,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              trailing:
+                                  _selectedIndexes.isNotEmpty
+                                      ? Checkbox(
+                                        value: isSelected,
+                                        onChanged: (_) => _toggleSelect(idx),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                        ),
+                                        activeColor: Colors.deepPurple,
+                                      )
+                                      : null,
+                              selected: isSelected,
+                              onLongPress: () => _toggleSelect(idx),
+                              onTap:
+                                  () =>
+                                      _selectedIndexes.isNotEmpty
+                                          ? _toggleSelect(idx)
+                                          : _toggleSelect(idx),
+                            ),
+                          );
+                        },
+                      ),
+            ),
+            if (_selectedIndexes.isNotEmpty)
+              Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(16),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.deepPurple.withOpacity(0.08),
+                      blurRadius: 12,
+                      offset: const Offset(0, -2),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.restore, color: Colors.deepPurple),
+                      tooltip: 'Restore Selected',
+                      onPressed: _restoreSelected,
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.delete_forever,
+                        color: Colors.deepPurple,
+                      ),
+                      tooltip: 'Delete Forever',
+                      onPressed: _deleteForeverSelected,
+                    ),
+                    const Spacer(),
+                    PopupMenuButton<String>(
+                      icon: const Icon(
+                        Icons.more_vert,
+                        color: Colors.deepPurple,
+                      ),
+                      onSelected: (value) {
+                        switch (value) {
+                          case 'clear':
+                            setState(() => _selectedIndexes.clear());
+                            break;
+                        }
+                      },
+                      itemBuilder:
+                          (context) => [
+                            PopupMenuItem(
+                              value: 'clear',
+                              child: Row(
+                                children: const [
+                                  Icon(Icons.clear, color: Colors.deepPurple),
+                                  SizedBox(width: 10),
+                                  Text('Clear Selection'),
+                                ],
+                              ),
+                            ),
+                          ],
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
