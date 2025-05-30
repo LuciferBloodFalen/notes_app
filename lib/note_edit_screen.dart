@@ -1,7 +1,8 @@
 import 'dart:io';
-import 'package:path_provider/path_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
+import 'package:flutter/services.dart';
 
 class NoteEditScreen extends StatefulWidget {
   final String? initialTitle;
@@ -162,6 +163,10 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
     }
   }
 
+  void _announce(String message, BuildContext context) {
+    SemanticsService.announce(message, Directionality.of(context));
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -224,23 +229,32 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
               elevation: 8,
               offset: const Offset(0, 40),
               onSelected: (value) {
+                HapticFeedback.lightImpact();
                 switch (value) {
                   case 'pin':
                     setState(() {
                       _isPinned = !_isPinned;
                     });
+                    _announce(
+                      _isPinned ? 'Note pinned' : 'Note unpinned',
+                      context,
+                    );
                     break;
                   case 'set_password':
                     _showPasswordDialog();
+                    _announce('Password dialog opened', context);
                     break;
                   case 'remove_password':
                     _removePassword();
+                    _announce('Password removed', context);
                     break;
                   case 'save':
                     _saveNoteAndPop();
+                    _announce('Note saved', context);
                     break;
                   case 'save_txt':
                     _saveAsTxt();
+                    _announce('Note saved as TXT', context);
                     break;
                 }
               },

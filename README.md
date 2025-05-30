@@ -13,10 +13,17 @@ A modern, feature-rich Flutter notes application.
 - **Pinned Notes Screen:** View only your pinned notes
 - **Dark & Light Themes:** Switch between light and dark modes
 - **Multi-select:** Select multiple notes for batch actions (pin/unpin, delete)
+- **Accessibility:** Semantic announcements, tooltips, large tap targets
+- **Undo for delete, pull-to-refresh, and error feedback**
+- **Haptic feedback and subtle animations for all key actions**
 
 ## Screenshots
 
-> _Add screenshots here if desired_
+<!-- Add screenshots here -->
+
+## APK Download
+
+<!-- Add APK download link here -->
 
 ## Getting Started
 
@@ -25,12 +32,10 @@ A modern, feature-rich Flutter notes application.
    git clone https://github.com/yourusername/notes_app.git
    cd notes_app
    ```
-
 2. **Install dependencies:**
    ```sh
    flutter pub get
    ```
-
 3. **Run the app:**
    ```sh
    flutter run

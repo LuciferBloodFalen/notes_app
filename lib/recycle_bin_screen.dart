@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
+import 'package:flutter/services.dart';
 import 'main.dart';
 import 'search_screen.dart';
 
@@ -38,9 +40,23 @@ class _RecycleBinScreenState extends State<RecycleBinScreen> {
       _selectedIndexes.clear();
     });
     Navigator.of(context).pop(restored);
+    HapticFeedback.lightImpact();
+    _announce(
+      'Restored ${restored.length} note${restored.length == 1 ? '' : 's'}',
+      context,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Restored ${restored.length} note${restored.length == 1 ? '' : 's'}.',
+        ),
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   void _deleteForeverSelected() {
+    final toDelete = _selectedIndexes.map((i) => _binNotes[i]).toList();
     setState(() {
       final toRemove =
           _selectedIndexes.toList()..sort((a, b) => b.compareTo(a));
@@ -49,6 +65,23 @@ class _RecycleBinScreenState extends State<RecycleBinScreen> {
       }
       _selectedIndexes.clear();
     });
+    HapticFeedback.lightImpact();
+    _announce(
+      'Deleted ${toDelete.length} note${toDelete.length == 1 ? '' : 's'} forever',
+      context,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Deleted ${toDelete.length} note${toDelete.length == 1 ? '' : 's'}.',
+        ),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _announce(String message, BuildContext context) {
+    SemanticsService.announce(message, Directionality.of(context));
   }
 
   @override
@@ -208,12 +241,24 @@ class _RecycleBinScreenState extends State<RecycleBinScreen> {
                                       )
                                       : null,
                               selected: isSelected,
-                              onLongPress: () => _toggleSelect(idx),
-                              onTap:
-                                  () =>
-                                      _selectedIndexes.isNotEmpty
-                                          ? _toggleSelect(idx)
-                                          : _toggleSelect(idx),
+                              onLongPress: () {
+                                HapticFeedback.lightImpact();
+                                _toggleSelect(idx);
+                                _announce(
+                                  'Selected ${note.title.isEmpty ? 'Untitled Note' : note.title}',
+                                  context,
+                                );
+                              },
+                              onTap: () {
+                                HapticFeedback.lightImpact();
+                                _selectedIndexes.isNotEmpty
+                                    ? _toggleSelect(idx)
+                                    : _toggleSelect(idx);
+                                _announce(
+                                  'Selected ${note.title.isEmpty ? 'Untitled Note' : note.title}',
+                                  context,
+                                );
+                              },
                             ),
                           );
                         },

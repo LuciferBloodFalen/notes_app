@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart'; // For SemanticsService
+import 'package:flutter/services.dart'; // For HapticFeedback
 import 'note_edit_screen.dart';
 import 'search_screen.dart';
 import 'settings_screen.dart';
@@ -170,7 +172,27 @@ class _NotesHomePageState extends State<NotesHomePage> {
   final Set<int> _selectedIndexes = {};
   final List<Note> _recycleBin = [];
 
+  final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
   bool get _isSelectionMode => _selectedIndexes.isNotEmpty;
+
+  // For accessibility: announce actions
+  void _announce(String message) {
+    SemanticsService.announce(message, TextDirection.ltr);
+  }
+
+  // Add focus node for accessibility
+  final FocusNode _fabFocusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _fabFocusNode.dispose();
+    super.dispose();
+  }
 
   void _openNoteEditScreen({int? index}) async {
     if (_isSelectionMode) return;
@@ -206,6 +228,9 @@ class _NotesHomePageState extends State<NotesHomePage> {
                         password: password,
                       ),
                     );
+                    _listKey.currentState?.insertItem(_notes.length - 1);
+                    HapticFeedback.lightImpact();
+                    _announce('Note added');
                   }
                 });
               },
@@ -224,8 +249,12 @@ class _NotesHomePageState extends State<NotesHomePage> {
     setState(() {
       if (_selectedIndexes.contains(index)) {
         _selectedIndexes.remove(index);
+        HapticFeedback.selectionClick();
+        _announce('Deselected');
       } else {
         _selectedIndexes.add(index);
+        HapticFeedback.selectionClick();
+        _announce('Selected');
       }
     });
   }
@@ -234,6 +263,8 @@ class _NotesHomePageState extends State<NotesHomePage> {
     setState(() {
       _selectedIndexes.clear();
     });
+    HapticFeedback.lightImpact();
+    _announce('Selection cleared');
   }
 
   void _deleteSelected() {
@@ -245,6 +276,26 @@ class _NotesHomePageState extends State<NotesHomePage> {
         _notes.removeAt(idx);
       }
       _selectedIndexes.clear();
+      HapticFeedback.mediumImpact();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Notes deleted'),
+          action: SnackBarAction(
+            label: 'Undo',
+            onPressed: () {
+              setState(() {
+                for (final idx in toRemove.reversed) {
+                  final note = _recycleBin.removeLast();
+                  _notes.insert(idx, note);
+                }
+              });
+              _announce('Undo delete');
+            },
+            textColor: Colors.yellow,
+          ),
+        ),
+      );
+      _announce('Notes deleted');
     });
   }
 
@@ -254,6 +305,8 @@ class _NotesHomePageState extends State<NotesHomePage> {
         _notes[idx].isPinned = !_notes[idx].isPinned;
       }
       _selectedIndexes.clear();
+      HapticFeedback.lightImpact();
+      _announce('Pin status changed');
     });
   }
 
@@ -432,10 +485,16 @@ class _NotesHomePageState extends State<NotesHomePage> {
               ),
             ],
           ),
-          child: Text(
-            _isSelectionMode
-                ? '${_selectedIndexes.length} selected'
-                : 'All Notes',
+          child: AnimatedSwitcher(
+            duration: Duration(milliseconds: 300),
+            transitionBuilder:
+                (child, anim) => FadeTransition(opacity: anim, child: child),
+            child: Text(
+              _isSelectionMode
+                  ? '${_selectedIndexes.length} selected'
+                  : 'All Notes',
+              key: ValueKey(_isSelectionMode ? 'selected' : 'all'),
+            ),
           ),
         ),
         centerTitle: true,
@@ -448,6 +507,7 @@ class _NotesHomePageState extends State<NotesHomePage> {
                     icon: const Icon(Icons.search),
                     tooltip: 'Search Notes',
                     onPressed: () {
+                      HapticFeedback.selectionClick();
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder:
@@ -485,134 +545,196 @@ class _NotesHomePageState extends State<NotesHomePage> {
               child:
                   sortedNotes.isEmpty
                       ? const Center(child: Text('No notes yet.'))
-                      : ListView.builder(
-                        itemCount: sortedNotes.length,
-                        itemBuilder: (context, idx) {
-                          final note = sortedNotes[idx];
-                          final originalIndex = sortedIndexes[idx];
-                          final isSelected = _selectedIndexes.contains(
-                            originalIndex,
-                          );
-                          return Card(
-                            color:
-                                note.isPinned
-                                    ? Colors.deepPurple.withOpacity(0.09)
-                                    : Theme.of(context).cardColor,
-                            margin: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 7,
-                            ),
-                            elevation: isSelected ? 8 : 3,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              side:
-                                  isSelected
-                                      ? BorderSide(
-                                        color: Colors.deepPurple,
-                                        width: 2.2,
-                                      )
-                                      : BorderSide.none,
-                            ),
-                            child: ListTile(
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 18,
-                                vertical: 10,
-                              ),
-                              title: Text(
-                                note.title.isEmpty ? '(No Title)' : note.title,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color:
-                                      isSelected
-                                          ? Colors.deepPurple
-                                          : Theme.of(
-                                            context,
-                                          ).textTheme.bodyMedium?.color,
-                                  fontSize: 18,
-                                  letterSpacing: 0.2,
+                      : RefreshIndicator(
+                        onRefresh: () async {
+                          HapticFeedback.lightImpact();
+                          _announce('Refreshed');
+                          setState(() {});
+                        },
+                        child: ListView.builder(
+                          itemCount: sortedNotes.length,
+                          itemBuilder: (context, idx) {
+                            final note = sortedNotes[idx];
+                            final originalIndex = sortedIndexes[idx];
+                            final isSelected = _selectedIndexes.contains(
+                              originalIndex,
+                            );
+                            return AnimatedContainer(
+                              duration: const Duration(milliseconds: 250),
+                              curve: Curves.easeInOut,
+                              child: Card(
+                                color:
+                                    note.isPinned
+                                        ? Colors.deepPurple.withOpacity(0.09)
+                                        : Theme.of(context).cardColor,
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 7,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              trailing:
-                                  _isSelectionMode
-                                      ? Checkbox(
-                                        value: isSelected,
-                                        onChanged:
-                                            (_) => _toggleSelect(originalIndex),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            6,
+                                elevation: isSelected ? 8 : 3,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  side:
+                                      isSelected
+                                          ? BorderSide(
+                                            color: Colors.deepPurple,
+                                            width: 2.2,
+                                          )
+                                          : BorderSide.none,
+                                ),
+                                child: ListTile(
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 18,
+                                    vertical: 10,
+                                  ),
+                                  title: GestureDetector(
+                                    onLongPress: () {
+                                      Clipboard.setData(
+                                        ClipboardData(text: note.title),
+                                      );
+                                      HapticFeedback.heavyImpact();
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Title copied to clipboard',
                                           ),
                                         ),
-                                        activeColor: Colors.deepPurple,
-                                      )
-                                      : (note.isPinned
-                                          ? Icon(
-                                            Icons.push_pin,
-                                            color: Colors.deepPurple,
-                                          )
-                                          : null),
-                              selected: isSelected,
-                              onLongPress: () => _toggleSelect(originalIndex),
-                              onTap: () async {
-                                if (_isSelectionMode) {
-                                  _toggleSelect(originalIndex);
-                                } else {
-                                  final note = _notes[originalIndex];
-                                  if (note.password != null &&
-                                      note.password!.isNotEmpty) {
-                                    final controller = TextEditingController();
-                                    final result = await showDialog<bool>(
-                                      context: context,
-                                      builder:
-                                          (context) => AlertDialog(
-                                            title: const Text('Enter Password'),
-                                            content: TextField(
-                                              controller: controller,
-                                              keyboardType:
-                                                  TextInputType.number,
-                                              maxLength: 4,
-                                              obscureText: true,
-                                              decoration: const InputDecoration(
-                                                hintText: '4-digit password',
-                                              ),
+                                      );
+                                      _announce('Title copied');
+                                    },
+                                    child: Tooltip(
+                                      message: 'Long press to copy title',
+                                      child: Text(
+                                        note.title.isEmpty
+                                            ? '(No Title)'
+                                            : note.title,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color:
+                                              isSelected
+                                                  ? Colors.deepPurple
+                                                  : Theme.of(
+                                                    context,
+                                                  ).textTheme.bodyMedium?.color,
+                                          fontSize: 18,
+                                          letterSpacing: 0.2,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ),
+                                  trailing:
+                                      _isSelectionMode
+                                          ? Checkbox(
+                                            value: isSelected,
+                                            onChanged:
+                                                (_) => _toggleSelect(
+                                                  originalIndex,
+                                                ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
                                             ),
-                                            actions: [
-                                              TextButton(
-                                                onPressed:
-                                                    () => Navigator.pop(
-                                                      context,
-                                                      false,
-                                                    ),
-                                                child: const Text('Cancel'),
+                                            activeColor: Colors.deepPurple,
+                                          )
+                                          : (note.isPinned
+                                              ? Tooltip(
+                                                message: 'Pinned',
+                                                child: Icon(
+                                                  Icons.push_pin,
+                                                  color: Colors.deepPurple,
+                                                ),
+                                              )
+                                              : null),
+                                  selected: isSelected,
+                                  onLongPress:
+                                      () => _toggleSelect(originalIndex),
+                                  onTap: () async {
+                                    if (_isSelectionMode) {
+                                      _toggleSelect(originalIndex);
+                                    } else {
+                                      final note = _notes[originalIndex];
+                                      if (note.password != null &&
+                                          note.password!.isNotEmpty) {
+                                        final controller =
+                                            TextEditingController();
+                                        final result = await showDialog<bool>(
+                                          context: context,
+                                          builder:
+                                              (context) => AlertDialog(
+                                                title: const Text(
+                                                  'Enter Password',
+                                                ),
+                                                content: TextField(
+                                                  controller: controller,
+                                                  keyboardType:
+                                                      TextInputType.number,
+                                                  maxLength: 4,
+                                                  obscureText: true,
+                                                  decoration:
+                                                      const InputDecoration(
+                                                        hintText:
+                                                            '4-digit password',
+                                                      ),
+                                                ),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed:
+                                                        () => Navigator.pop(
+                                                          context,
+                                                          false,
+                                                        ),
+                                                    child: const Text('Cancel'),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed: () {
+                                                      if (controller.text ==
+                                                          note.password) {
+                                                        Navigator.pop(
+                                                          context,
+                                                          true,
+                                                        );
+                                                      } else {
+                                                        HapticFeedback.heavyImpact();
+                                                        ScaffoldMessenger.of(
+                                                          context,
+                                                        ).showSnackBar(
+                                                          const SnackBar(
+                                                            content: Text(
+                                                              'Incorrect password',
+                                                            ),
+                                                          ),
+                                                        );
+                                                        _announce(
+                                                          'Incorrect password',
+                                                        );
+                                                      }
+                                                    },
+                                                    child: const Text('OK'),
+                                                  ),
+                                                ],
                                               ),
-                                              TextButton(
-                                                onPressed: () {
-                                                  if (controller.text ==
-                                                      note.password) {
-                                                    Navigator.pop(
-                                                      context,
-                                                      true,
-                                                    );
-                                                  }
-                                                },
-                                                child: const Text('OK'),
-                                              ),
-                                            ],
-                                          ),
-                                    );
-                                    if (result == true) {
-                                      _openNoteEditScreen(index: originalIndex);
+                                        );
+                                        if (result == true) {
+                                          _openNoteEditScreen(
+                                            index: originalIndex,
+                                          );
+                                        }
+                                      } else {
+                                        _openNoteEditScreen(
+                                          index: originalIndex,
+                                        );
+                                      }
                                     }
-                                  } else {
-                                    _openNoteEditScreen(index: originalIndex);
-                                  }
-                                }
-                              },
-                            ),
-                          );
-                        },
+                                  },
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                       ),
             ),
             if (_isSelectionMode)
@@ -696,14 +818,24 @@ class _NotesHomePageState extends State<NotesHomePage> {
       floatingActionButton:
           _isSelectionMode
               ? null
-              : FloatingActionButton(
-                shape: const CircleBorder(),
-                onPressed: () => _openNoteEditScreen(),
-                backgroundColor: Colors.deepPurple,
-                foregroundColor: Colors.white,
-                elevation: 6,
-                child: const Icon(Icons.add, size: 30),
-                tooltip: 'Add Note',
+              : Focus(
+                focusNode: _fabFocusNode,
+                child: Tooltip(
+                  message: 'Add Note',
+                  child: FloatingActionButton(
+                    shape: const CircleBorder(),
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      _openNoteEditScreen();
+                      _announce('Add note');
+                    },
+                    backgroundColor: Colors.deepPurple,
+                    foregroundColor: Colors.white,
+                    elevation: 6,
+                    child: const Icon(Icons.add, size: 30),
+                    tooltip: 'Add Note',
+                  ),
+                ),
               ),
     );
   }

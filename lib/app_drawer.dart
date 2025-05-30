@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
+import 'package:flutter/services.dart';
 
 class AppDrawer extends StatelessWidget {
   final VoidCallback? onPinnedNotes;
@@ -13,6 +15,10 @@ class AppDrawer extends StatelessWidget {
     this.onRecycleBin,
     this.onSettings,
   });
+
+  void _announce(String message, BuildContext context) {
+    SemanticsService.announce(message, Directionality.of(context));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,6 +68,11 @@ class AppDrawer extends StatelessWidget {
             onTap: () {
               Navigator.pop(context);
               onPinnedNotes?.call();
+              HapticFeedback.lightImpact();
+              _announce('Opened Pinned Notes', context);
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text('Opened Pinned Notes')));
             },
           ),
           ListTile(
@@ -73,6 +84,11 @@ class AppDrawer extends StatelessWidget {
             onTap: () {
               Navigator.pop(context);
               onLockedNotes?.call();
+              HapticFeedback.lightImpact();
+              _announce('Opened Locked Notes', context);
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text('Opened Locked Notes')));
             },
           ),
           ListTile(
@@ -84,6 +100,11 @@ class AppDrawer extends StatelessWidget {
             onTap: () {
               Navigator.pop(context);
               onRecycleBin?.call();
+              HapticFeedback.lightImpact();
+              _announce('Opened Recycle Bin', context);
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text('Opened Recycle Bin')));
             },
           ),
           const Divider(),
@@ -96,6 +117,11 @@ class AppDrawer extends StatelessWidget {
             onTap: () {
               Navigator.pop(context);
               onSettings?.call();
+              HapticFeedback.lightImpact();
+              _announce('Opened Settings', context);
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text('Opened Settings')));
             },
           ),
         ],

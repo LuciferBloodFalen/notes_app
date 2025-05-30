@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
+import 'package:flutter/services.dart';
 
 class SettingsScreen extends StatefulWidget {
   final ThemeMode currentThemeMode;
@@ -27,6 +29,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _selectedMode = value ? ThemeMode.dark : ThemeMode.light;
     });
     Navigator.of(context).pop(_selectedMode);
+    HapticFeedback.lightImpact();
+    _announce(
+      'Theme changed to ${_selectedMode == ThemeMode.dark ? 'Dark' : 'Light'} mode',
+      context,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Theme changed to ${_selectedMode == ThemeMode.dark ? 'Dark' : 'Light'} mode',
+        ),
+        duration: const Duration(seconds: 1),
+      ),
+    );
   }
 
   void _onSystemTap() {
@@ -34,6 +49,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _selectedMode = ThemeMode.system;
     });
     Navigator.of(context).pop(_selectedMode);
+    HapticFeedback.lightImpact();
+    _announce('Theme changed to System Default', context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Theme changed to System Default'),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+
+  void _announce(String message, BuildContext context) {
+    SemanticsService.announce(message, Directionality.of(context));
   }
 
   @override

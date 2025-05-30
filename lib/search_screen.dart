@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
+import 'package:flutter/services.dart';
 import 'main.dart'; // Use the Note model from main.dart
 
 class SearchScreen extends StatefulWidget {
@@ -33,6 +35,10 @@ class _SearchScreenState extends State<SearchScreen> {
               .reversed
               .toList();
     });
+  }
+
+  void _announce(String message, BuildContext context) {
+    SemanticsService.announce(message, Directionality.of(context));
   }
 
   @override
@@ -120,6 +126,34 @@ class _SearchScreenState extends State<SearchScreen> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
+                            onTap: () {
+                              HapticFeedback.lightImpact();
+                              _announce(
+                                'Selected note: ${note.title}',
+                                context,
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Selected note: ${note.title}'),
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                            },
+                            onLongPress: () {
+                              HapticFeedback.lightImpact();
+                              _announce(
+                                'Long pressed note: ${note.title}',
+                                context,
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Long pressed note: ${note.title}',
+                                  ),
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                            },
                           ),
                         );
                       },

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
+import 'package:flutter/services.dart';
 import 'main.dart'; // For Note model
 import 'search_screen.dart'; // Import SearchScreen
 
@@ -56,6 +58,10 @@ class _PinnedNotesScreenState extends State<PinnedNotesScreen> {
       }
       _selectedIndexes.clear();
     });
+  }
+
+  void _announce(String message, BuildContext context) {
+    SemanticsService.announce(message, Directionality.of(context));
   }
 
   @override
@@ -190,12 +196,30 @@ class _PinnedNotesScreenState extends State<PinnedNotesScreen> {
                                         color: Colors.deepPurple,
                                       ),
                               selected: isSelected,
-                              onLongPress: () => _toggleSelect(idx),
-                              onTap:
-                                  () =>
-                                      _isSelectionMode
-                                          ? _toggleSelect(idx)
-                                          : widget.onNoteTap(note),
+                              onLongPress: () {
+                                HapticFeedback.lightImpact();
+                                _toggleSelect(idx);
+                                _announce('Selected ${note.title}', context);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Selected ${note.title}'),
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              },
+                              onTap: () {
+                                HapticFeedback.lightImpact();
+                                _isSelectionMode
+                                    ? _toggleSelect(idx)
+                                    : widget.onNoteTap(note);
+                                _announce('Opened ${note.title}', context);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Opened ${note.title}'),
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              },
                             ),
                           );
                         },
@@ -241,12 +265,54 @@ class _PinnedNotesScreenState extends State<PinnedNotesScreen> {
                                   )
                               ? 'Unpin Selected'
                               : 'Pin Selected',
-                      onPressed: _togglePinSelected,
+                      onPressed: () {
+                        HapticFeedback.lightImpact();
+                        _togglePinSelected();
+                        _announce(
+                          notes.isNotEmpty &&
+                                  _selectedIndexes.isNotEmpty &&
+                                  _selectedIndexes.every(
+                                    (idx) => notes[idx].isPinned,
+                                  )
+                              ? 'Unpinned ${_selectedIndexes.length} notes'
+                              : 'Pinned ${_selectedIndexes.length} notes',
+                          context,
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              notes.isNotEmpty &&
+                                      _selectedIndexes.isNotEmpty &&
+                                      _selectedIndexes.every(
+                                        (idx) => notes[idx].isPinned,
+                                      )
+                                  ? 'Unpinned ${_selectedIndexes.length} notes'
+                                  : 'Pinned ${_selectedIndexes.length} notes',
+                            ),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      },
                     ),
                     IconButton(
                       icon: const Icon(Icons.delete, color: Colors.deepPurple),
                       tooltip: 'Delete Selected',
-                      onPressed: _deleteSelected,
+                      onPressed: () {
+                        HapticFeedback.lightImpact();
+                        _deleteSelected();
+                        _announce(
+                          'Deleted ${_selectedIndexes.length} notes',
+                          context,
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Deleted ${_selectedIndexes.length} notes',
+                            ),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      },
                     ),
                     const Spacer(),
                     PopupMenuButton<String>(

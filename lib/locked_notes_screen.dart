@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
+import 'package:flutter/services.dart';
 import 'main.dart'; // For Note model
 import 'search_screen.dart'; // Import SearchScreen
 
@@ -58,6 +60,10 @@ class _LockedNotesScreenState extends State<LockedNotesScreen> {
     });
   }
 
+  void _announce(String message, BuildContext context) {
+    SemanticsService.announce(message, Directionality.of(context));
+  }
+
   @override
   Widget build(BuildContext context) {
     final notes = widget.notes;
@@ -67,7 +73,7 @@ class _LockedNotesScreenState extends State<LockedNotesScreen> {
       appBar: AppBar(
         elevation: 6,
         shadowColor: Colors.deepPurple.withOpacity(0.18),
-        shape: const RoundedRectangleBorder(
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(18)),
         ),
         title: const DefaultTextStyle(
@@ -190,12 +196,37 @@ class _LockedNotesScreenState extends State<LockedNotesScreen> {
                                       )
                                       : null,
                               selected: isSelected,
-                              onLongPress: () => _toggleSelect(idx),
-                              onTap:
-                                  () =>
-                                      _isSelectionMode
-                                          ? _toggleSelect(idx)
-                                          : widget.onNoteTap(note),
+                              onLongPress: () {
+                                HapticFeedback.lightImpact();
+                                _toggleSelect(idx);
+                                _announce('Note selected', context);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Note ${note.title} selected',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    duration: const Duration(seconds: 2),
+                                    behavior: SnackBarBehavior.floating,
+                                    margin: const EdgeInsets.symmetric(
+                                      horizontal: 50,
+                                      vertical: 10,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                );
+                              },
+                              onTap: () {
+                                HapticFeedback.lightImpact();
+                                _isSelectionMode
+                                    ? _toggleSelect(idx)
+                                    : widget.onNoteTap(note);
+                                _announce('Note tapped', context);
+                              },
                             ),
                           );
                         },
@@ -205,9 +236,7 @@ class _LockedNotesScreenState extends State<LockedNotesScreen> {
               Container(
                 decoration: BoxDecoration(
                   color: Theme.of(context).cardColor,
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(16),
-                  ),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.deepPurple.withOpacity(0.08),
@@ -241,12 +270,64 @@ class _LockedNotesScreenState extends State<LockedNotesScreen> {
                                   )
                               ? 'Unpin Selected'
                               : 'Pin Selected',
-                      onPressed: _togglePinSelected,
+                      onPressed: () {
+                        HapticFeedback.lightImpact();
+                        _togglePinSelected();
+                        _announce('Toggle pin selected', context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              notes.isNotEmpty &&
+                                      _selectedIndexes.isNotEmpty &&
+                                      _selectedIndexes.every(
+                                        (idx) => notes[idx].isPinned,
+                                      )
+                                  ? 'Unpinned ${_selectedIndexes.length} notes'
+                                  : 'Pinned ${_selectedIndexes.length} notes',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            duration: const Duration(seconds: 2),
+                            behavior: SnackBarBehavior.floating,
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 50,
+                              vertical: 10,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                     IconButton(
                       icon: const Icon(Icons.delete, color: Colors.deepPurple),
                       tooltip: 'Delete Selected',
-                      onPressed: _deleteSelected,
+                      onPressed: () {
+                        HapticFeedback.lightImpact();
+                        _deleteSelected();
+                        _announce('Delete selected notes', context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Deleted ${_selectedIndexes.length} notes',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            duration: const Duration(seconds: 2),
+                            behavior: SnackBarBehavior.floating,
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 50,
+                              vertical: 10,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                     const Spacer(),
                     PopupMenuButton<String>(
@@ -258,6 +339,24 @@ class _LockedNotesScreenState extends State<LockedNotesScreen> {
                         switch (value) {
                           case 'clear':
                             _clearSelection();
+                            _announce('Selection cleared', context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Selection cleared',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                duration: Duration(seconds: 2),
+                                behavior: SnackBarBehavior.floating,
+                                margin: EdgeInsets.symmetric(
+                                  horizontal: 50,
+                                  vertical: 10,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            );
                             break;
                           // Add more bulk actions here if needed
                         }
