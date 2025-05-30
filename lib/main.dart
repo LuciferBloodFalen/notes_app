@@ -4,6 +4,7 @@ import 'search_screen.dart';
 import 'settings_screen.dart';
 import 'recycle_bin_screen.dart';
 import 'pinned_notes_screen.dart'; // Add this import
+import 'locked_notes_screen.dart'; // Add this import
 
 void main() {
   runApp(const MainApp());
@@ -232,6 +233,61 @@ class _NotesHomePageState extends State<NotesHomePage> {
     );
   }
 
+  void _openLockedNotesScreen() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder:
+            (context) => LockedNotesScreen(
+              notes:
+                  _notes
+                      .where(
+                        (n) => n.password != null && n.password!.isNotEmpty,
+                      )
+                      .toList(),
+              onNoteTap: (note) async {
+                final index = _notes.indexOf(note);
+                if (index != -1) {
+                  final controller = TextEditingController();
+                  final result = await showDialog<bool>(
+                    context: context,
+                    builder:
+                        (context) => AlertDialog(
+                          title: const Text('Enter Password'),
+                          content: TextField(
+                            controller: controller,
+                            keyboardType: TextInputType.number,
+                            maxLength: 4,
+                            obscureText: true,
+                            decoration: const InputDecoration(
+                              hintText: '4-digit password',
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                if (controller.text == note.password) {
+                                  Navigator.pop(context, true);
+                                }
+                              },
+                              child: const Text('OK'),
+                            ),
+                          ],
+                        ),
+                  );
+                  if (result == true) {
+                    _openNoteEditScreen(index: index);
+                  }
+                }
+              },
+            ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Pinned first, then others
@@ -277,6 +333,17 @@ class _NotesHomePageState extends State<NotesHomePage> {
               onTap: () {
                 Navigator.pop(context);
                 _openPinnedNotesScreen();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.lock),
+              title: const Text(
+                'Lock Notes',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _openLockedNotesScreen();
               },
             ),
             ListTile(
