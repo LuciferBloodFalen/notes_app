@@ -5,6 +5,7 @@ import 'settings_screen.dart';
 import 'recycle_bin_screen.dart';
 import 'pinned_notes_screen.dart'; // Add this import
 import 'locked_notes_screen.dart'; // Add this import
+import 'app_drawer.dart';
 
 void main() {
   runApp(const MainApp());
@@ -94,9 +95,9 @@ class _NotesHomePageState extends State<NotesHomePage> {
   bool get _isSelectionMode => _selectedIndexes.isNotEmpty;
 
   void _openNoteEditScreen({int? index}) async {
-    if (_isSelectionMode) return; // Prevent editing while selecting
-    final isEditing = index != null && index! >= 0 && index < _notes.length;
-    final note = isEditing ? _notes[index!] : null;
+    if (_isSelectionMode) return;
+    final isEditing = index != null && index >= 0 && index < _notes.length;
+    final note = isEditing ? _notes[index] : null;
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder:
@@ -105,17 +106,17 @@ class _NotesHomePageState extends State<NotesHomePage> {
               initialContent: note?.content,
               isPinned: note?.isPinned ?? false,
               initialColor: note?.cardColor ?? Colors.white,
-              initialPassword: note?.password, // Pass password
+              initialPassword: note?.password,
               onSave: (title, content, isPinned, cardColor, password) {
                 if (title.trim().isEmpty && content.trim().isEmpty) return;
                 setState(() {
                   if (isEditing) {
-                    _notes[index!] = Note(
+                    _notes[index] = Note(
                       title: title,
                       content: content,
                       isPinned: isPinned,
                       cardColor: cardColor,
-                      password: password, // Save password
+                      password: password,
                     );
                   } else {
                     _notes.add(
@@ -124,29 +125,21 @@ class _NotesHomePageState extends State<NotesHomePage> {
                         content: content,
                         isPinned: isPinned,
                         cardColor: cardColor,
-                        password: password, // Save password
+                        password: password,
                       ),
                     );
                   }
                 });
               },
+              drawer: AppDrawer(
+                onPinnedNotes: _openPinnedNotesScreen,
+                onLockedNotes: _openLockedNotesScreen,
+                onRecycleBin: _openRecycleBinScreen,
+                onSettings: _openSettingsScreen,
+              ),
             ),
       ),
     );
-  }
-
-  void _togglePin(int index) {
-    setState(() {
-      _notes[index].isPinned = !_notes[index].isPinned;
-    });
-  }
-
-  void _deleteNote(int index) {
-    if (index < 0 || index >= _notes.length) return;
-    setState(() {
-      _recycleBin.add(_notes[index]);
-      _notes.removeAt(index);
-    });
   }
 
   void _toggleSelect(int index) {
@@ -192,6 +185,12 @@ class _NotesHomePageState extends State<NotesHomePage> {
         builder:
             (context) => SettingsScreen(
               currentThemeMode: widget.themeMode ?? ThemeMode.light,
+              drawer: AppDrawer(
+                onPinnedNotes: _openPinnedNotesScreen,
+                onLockedNotes: _openLockedNotesScreen,
+                onRecycleBin: _openRecycleBinScreen,
+                onSettings: _openSettingsScreen,
+              ),
             ),
       ),
     );
@@ -204,8 +203,15 @@ class _NotesHomePageState extends State<NotesHomePage> {
     final restoredNotes = await Navigator.of(context).push<List<Note>>(
       MaterialPageRoute(
         builder:
-            (context) =>
-                RecycleBinScreen(deletedNotes: List<Note>.from(_recycleBin)),
+            (context) => RecycleBinScreen(
+              deletedNotes: List<Note>.from(_recycleBin),
+              drawer: AppDrawer(
+                onPinnedNotes: _openPinnedNotesScreen,
+                onLockedNotes: _openLockedNotesScreen,
+                onRecycleBin: _openRecycleBinScreen,
+                onSettings: _openSettingsScreen,
+              ),
+            ),
       ),
     );
     if (restoredNotes != null) {
@@ -228,6 +234,12 @@ class _NotesHomePageState extends State<NotesHomePage> {
                   _openNoteEditScreen(index: index);
                 }
               },
+              drawer: AppDrawer(
+                onPinnedNotes: _openPinnedNotesScreen,
+                onLockedNotes: _openLockedNotesScreen,
+                onRecycleBin: _openRecycleBinScreen,
+                onSettings: _openSettingsScreen,
+              ),
             ),
       ),
     );
@@ -283,6 +295,12 @@ class _NotesHomePageState extends State<NotesHomePage> {
                   }
                 }
               },
+              drawer: AppDrawer(
+                onPinnedNotes: _openPinnedNotesScreen,
+                onLockedNotes: _openLockedNotesScreen,
+                onRecycleBin: _openRecycleBinScreen,
+                onSettings: _openSettingsScreen,
+              ),
             ),
       ),
     );
@@ -310,66 +328,11 @@ class _NotesHomePageState extends State<NotesHomePage> {
     ];
 
     return Scaffold(
-      drawer: Drawer(
-        child: ListView(
-          children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(color: Colors.deepPurple),
-              child: DefaultTextStyle(
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 24,
-                  color: Colors.white,
-                ),
-                child: Text('Menu'),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.push_pin),
-              title: const Text(
-                'Pinned Notes',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _openPinnedNotesScreen();
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.lock),
-              title: const Text(
-                'Lock Notes',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _openLockedNotesScreen();
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete_outline),
-              title: const Text(
-                'Recycle Bin',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _openRecycleBinScreen();
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text(
-                'Settings',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _openSettingsScreen();
-              },
-            ),
-          ],
-        ),
+      drawer: AppDrawer(
+        onPinnedNotes: _openPinnedNotesScreen,
+        onLockedNotes: _openLockedNotesScreen,
+        onRecycleBin: _openRecycleBinScreen,
+        onSettings: _openSettingsScreen,
       ),
       appBar: AppBar(
         title: DefaultTextStyle(
@@ -423,7 +386,16 @@ class _NotesHomePageState extends State<NotesHomePage> {
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => SearchScreen(notes: _notes),
+                          builder:
+                              (context) => SearchScreen(
+                                notes: _notes,
+                                drawer: AppDrawer(
+                                  onPinnedNotes: _openPinnedNotesScreen,
+                                  onLockedNotes: _openLockedNotesScreen,
+                                  onRecycleBin: _openRecycleBinScreen,
+                                  onSettings: _openSettingsScreen,
+                                ),
+                              ),
                         ),
                       );
                     },

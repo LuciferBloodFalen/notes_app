@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 
 class SettingsScreen extends StatefulWidget {
   final ThemeMode currentThemeMode;
-  const SettingsScreen({super.key, required this.currentThemeMode});
+  final Widget? drawer;
+  const SettingsScreen({
+    super.key,
+    required this.currentThemeMode,
+    this.drawer,
+  });
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -34,7 +39,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: widget.drawer,
       appBar: AppBar(
+        leading:
+            widget.drawer != null
+                ? Builder(
+                  builder:
+                      (context) => IconButton(
+                        icon: const Icon(Icons.menu),
+                        onPressed: () => Scaffold.of(context).openDrawer(),
+                      ),
+                )
+                : null,
         title: const Text('Settings'),
         backgroundColor: Colors.deepPurple,
       ),

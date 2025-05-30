@@ -3,15 +3,15 @@ import 'main.dart'; // Use the Note model from main.dart
 
 class SearchScreen extends StatefulWidget {
   final List<Note> notes;
+  final Widget? drawer;
 
-  const SearchScreen({super.key, required this.notes});
+  const SearchScreen({super.key, required this.notes, this.drawer});
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  String _query = '';
   List<Note> _results = [];
 
   @override
@@ -22,7 +22,6 @@ class _SearchScreenState extends State<SearchScreen> {
 
   void _search(String query) {
     setState(() {
-      _query = query;
       _results =
           widget.notes
               .where(
@@ -40,7 +39,18 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget build(BuildContext context) {
     final textColor = Theme.of(context).textTheme.bodyMedium?.color;
     return Scaffold(
+      drawer: widget.drawer,
       appBar: AppBar(
+        leading:
+            widget.drawer != null
+                ? Builder(
+                  builder:
+                      (context) => IconButton(
+                        icon: const Icon(Icons.menu),
+                        onPressed: () => Scaffold.of(context).openDrawer(),
+                      ),
+                )
+                : null,
         title: const DefaultTextStyle(
           style: TextStyle(
             fontWeight: FontWeight.bold,

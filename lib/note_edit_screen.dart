@@ -14,6 +14,7 @@ class NoteEditScreen extends StatefulWidget {
     String? password, // Add this
   )
   onSave;
+  final Widget? drawer;
 
   const NoteEditScreen({
     super.key,
@@ -23,6 +24,7 @@ class NoteEditScreen extends StatefulWidget {
     this.initialColor,
     this.initialPassword, // Add this
     required this.onSave,
+    this.drawer,
   });
 
   @override
@@ -133,7 +135,18 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
         return false;
       },
       child: Scaffold(
+        drawer: widget.drawer,
         appBar: AppBar(
+          leading:
+              widget.drawer != null
+                  ? Builder(
+                    builder:
+                        (context) => IconButton(
+                          icon: const Icon(Icons.menu),
+                          onPressed: () => Scaffold.of(context).openDrawer(),
+                        ),
+                  )
+                  : null,
           title: DefaultTextStyle(
             style: const TextStyle(
               fontWeight: FontWeight.bold,

@@ -4,18 +4,31 @@ import 'main.dart'; // For Note model
 class LockedNotesScreen extends StatelessWidget {
   final List<Note> notes;
   final void Function(Note note) onNoteTap;
+  final Widget? drawer;
 
   const LockedNotesScreen({
     super.key,
     required this.notes,
     required this.onNoteTap,
+    this.drawer,
   });
 
   @override
   Widget build(BuildContext context) {
     final textColor = Theme.of(context).textTheme.bodyMedium?.color;
     return Scaffold(
+      drawer: drawer,
       appBar: AppBar(
+        leading:
+            drawer != null
+                ? Builder(
+                  builder:
+                      (context) => IconButton(
+                        icon: const Icon(Icons.menu),
+                        onPressed: () => Scaffold.of(context).openDrawer(),
+                      ),
+                )
+                : null,
         title: const DefaultTextStyle(
           style: TextStyle(
             fontWeight: FontWeight.bold,

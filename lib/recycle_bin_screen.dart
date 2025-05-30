@@ -3,7 +3,8 @@ import 'main.dart';
 
 class RecycleBinScreen extends StatefulWidget {
   final List<Note> deletedNotes;
-  const RecycleBinScreen({super.key, required this.deletedNotes});
+  final Widget? drawer;
+  const RecycleBinScreen({super.key, required this.deletedNotes, this.drawer});
 
   @override
   State<RecycleBinScreen> createState() => _RecycleBinScreenState();
@@ -53,7 +54,18 @@ class _RecycleBinScreenState extends State<RecycleBinScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
+      drawer: widget.drawer,
       appBar: AppBar(
+        leading:
+            widget.drawer != null
+                ? Builder(
+                  builder:
+                      (context) => IconButton(
+                        icon: const Icon(Icons.menu),
+                        onPressed: () => Scaffold.of(context).openDrawer(),
+                      ),
+                )
+                : null,
         title: DefaultTextStyle(
           style: const TextStyle(
             fontWeight: FontWeight.bold,

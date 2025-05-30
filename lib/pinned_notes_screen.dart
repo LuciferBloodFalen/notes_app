@@ -4,17 +4,30 @@ import 'main.dart'; // For Note model
 class PinnedNotesScreen extends StatelessWidget {
   final List<Note> notes;
   final void Function(Note note) onNoteTap;
+  final Widget? drawer;
 
   const PinnedNotesScreen({
     super.key,
     required this.notes,
     required this.onNoteTap,
+    this.drawer,
   });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: drawer,
       appBar: AppBar(
+        leading:
+            drawer != null
+                ? Builder(
+                  builder:
+                      (context) => IconButton(
+                        icon: const Icon(Icons.menu),
+                        onPressed: () => Scaffold.of(context).openDrawer(),
+                      ),
+                )
+                : null,
         title: const DefaultTextStyle(
           style: TextStyle(
             fontWeight: FontWeight.bold,
